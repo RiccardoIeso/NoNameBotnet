@@ -13,6 +13,7 @@ def start_server(host, port, sock_by_ip):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((host, port))
     sock.listen(5)
+    sock.setblocking(0)
     print('[*] Server listen on %s:%d' % (host,port))
     print('[*] Enstablish connection with clients')
     inputs = [sock]
