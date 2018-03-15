@@ -21,7 +21,6 @@ int main(){
     sockfd = socket(AF_INET , SOCK_STREAM , 0);
     create_conn(sockfd, server_ip,server_port);
     printf("Connessione creata \n");
-    printf("REMINDER: FATTE LI CAZZI TUA\n");
 	recv(sockfd , server_reply , 100 , 0);
 	printf("Comando ricevuto: %s \n",server_reply);
 	//Gestisco i comandi del server
