@@ -28,7 +28,7 @@ def login():
 @app.route('/main_activity', methods=['GET','POST'])
 def main_activity():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(("127.0.0.1",8081))
+    sock.connect(("167.99.194.11",8081))
     while True:
         data_b = sock.recv(4096)
         data = data_b.decode('utf-8')

