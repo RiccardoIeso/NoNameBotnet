@@ -2,7 +2,13 @@
 
 from twisted.internet import protocol, reactor, endpoints
 
-message = {} #Dict of messages
+#Messages for the clients
+c_message = {} 
+#Messages for the master
+m_message = []
+#List of ip connected
+ip_list = []
+#Number of connected clients
 cnt_clients = 0 #Number of connected clients
 
 class echoClient(protocol.Protocol):
@@ -11,38 +17,44 @@ class echoClient(protocol.Protocol):
 
     def connectionMade(self):
         global cnt_clients
-        global message
+        global c_message
+        global ip_list
         self.peer_host = self.transport.getPeer().host
         self.peer_port = self.transport.getPeer().port
         self.factory.clients[self.peer_host] = self
+        ip_list.append(self.peer_host)
         print('[*]Client %s:%s connected' %(self.peer_host, self.peer_port))
+	print('[DEBUG] @param ip_list = %s' %(str(ip_list)))
         cnt_clients += 1
         print('[%s]Clients status' %(cnt_clients))
-        self.sendMessage(message)
+        self.sendMessage(c_message)
 
     def connectionLost(self, reason):
         global cnt_clients
         cnt_clients -= 1
         self.factory.clients.pop(self.peer_host, None)
+	ip_list.remove(self.peer_host)
         print('[*] Client %s:%s disconnected' %(self.peer_host, self.peer_port))
         print('[%s] Client status ' %(cnt_clients))
-
+	
+    #TODO Message updating (IMPORTANT)
     def sendMessage(self, msg):
         if msg:
             print('message %s' %(msg))
             for m_key, m_value in msg.items():
                 for c_key, c_value in self.factory.clients.items():
                     if m_key == c_key:
-                        #TODO Delete message in message dict after that operation is completed
+                        rm_key = m_key
                         self.factory.clients[c_key].transport.write(m_value.encode('utf-8'))
+            msg.pop(rm_key, None)
         else:
             pass
 
     def dataReceived(self, data):
-        #TODO Parse data received
-        global message
-        message[self.transport.getPeer().host] = data.decode('utf-8')
-        self.sendMessage(message)
+	print("a")
+        
+    def generateResponse():
+	print("b")
 
 class clientFactory(protocol.Factory):
     def __init__(self):
@@ -54,33 +66,34 @@ class clientFactory(protocol.Factory):
 
 class echoMaster(protocol.Protocol):
     def connectionMade(self):
+        global ip_list
         self.master_host = self.transport.getPeer().host
         print('*- Master [%s] connected -*' %(self.master_host))
-        #TODO send bot list to Master
+        send_ip = ":".join(ip_list)
+        self.transport.write(send_ip.encode('utf-8'))
 
     def dataReceived(self, data):
         self.parseData(data)
 
     def connectionLost(self, reason):
         print('*- Master [%s] disconnected -*' %(self.master_host))
-    
+
     def parseData(self, data):
         print(data)
         global message
         data = data.decode('utf-8')
-        p_data = data.split(':')
+        p_data = data.split('*')
         peer_ip = p_data[0]
         peer_msg = p_data[1]
-        if peer_msg == 'klg':
-            msg = message[peer_ip] = peer_msg
+        msg = message[peer_ip] = peer_msg
 
 class masterFactory(protocol.Factory):
     def buildProtocol(self, addr):
         return echoMaster()
 
 def main():
-    endpoints.serverFromString(reactor, "tcp:8080:interface=127.0.0.1").listen(clientFactory())
-    endpoints.serverFromString(reactor, "tcp:8081:interface=127.0.0.1").listen(masterFactory())
+    endpoints.serverFromString(reactor, "tcp:8081:interface=127.0.0.1").listen(clientFactory())
+    endpoints.serverFromString(reactor, "tcp:8080:interface=127.0.0.1").listen(masterFactory())
     reactor.run()
 
 if __name__ == '__main__':

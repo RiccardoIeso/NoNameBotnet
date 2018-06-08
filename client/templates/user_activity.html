@@ -1,0 +1,10 @@
+{% block body %}
+	<h1><b>NoNameBotnet</b></h1>
+	<h2>USER IP --{{ ip }}--</h2>
+	<form method="post">
+		<input type="submit" name="submit" value="SEND COMMAND">
+		<input name=text>
+		<input name="host" type="hidden" value="{{ ip }}">
+	</form>
+
+{% endblock %}
