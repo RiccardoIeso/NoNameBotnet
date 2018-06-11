@@ -1,6 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from twisted.internet import protocol, reactor, endpoints
+from twisted.internet.task import LoopingCall
+import socket
 
 #Messages for the clients
 c_message = {} 
@@ -9,7 +11,7 @@ m_message = []
 #List of ip connected
 ip_list = []
 #Number of connected clients
-cnt_clients = 0 #Number of connected clients
+cnt_clients = 0
 
 class echoClient(protocol.Protocol):
     def __init__(self, factory):
@@ -17,51 +19,50 @@ class echoClient(protocol.Protocol):
 
     def connectionMade(self):
         global cnt_clients
-        global c_message
         global ip_list
         self.peer_host = self.transport.getPeer().host
         self.peer_port = self.transport.getPeer().port
-        self.factory.clients[self.peer_host] = self
-        ip_list.append(self.peer_host)
+        self.hostport = ''.join([self.peer_host, str(self.peer_port)])
+        self.factory.clients[self.hostport] = self
+        ip_list.append(self.hostport)
         print('[*]Client %s:%s connected' %(self.peer_host, self.peer_port))
-	print('[DEBUG] @param ip_list = %s' %(str(ip_list)))
         cnt_clients += 1
-        print('[%s]Clients status' %(cnt_clients))
-        self.sendMessage(c_message)
+        print('[%s]Clients status' %(cnt_clients))		
 
     def connectionLost(self, reason):
         global cnt_clients
+        global ip_list
         cnt_clients -= 1
-        self.factory.clients.pop(self.peer_host, None)
-	ip_list.remove(self.peer_host)
+        self.factory.clients.pop(self.hostport, None)
+        ip_list.remove(self.hostport)  
         print('[*] Client %s:%s disconnected' %(self.peer_host, self.peer_port))
         print('[%s] Client status ' %(cnt_clients))
-	
-    #TODO Message updating (IMPORTANT)
-    def sendMessage(self, msg):
-        if msg:
-            print('message %s' %(msg))
-            for m_key, m_value in msg.items():
-                for c_key, c_value in self.factory.clients.items():
-                    if m_key == c_key:
-                        rm_key = m_key
-                        self.factory.clients[c_key].transport.write(m_value.encode('utf-8'))
-            msg.pop(rm_key, None)
-        else:
-            pass
-
+    
     def dataReceived(self, data):
-	print("a")
-        
-    def generateResponse():
-	print("b")
+        print(data)
 
 class clientFactory(protocol.Factory):
     def __init__(self):
         self.clients = {}
+        
+        def broadcast_msg():
+            global c_message
+            rmList = []
+            if c_message:
+                print('message %s' %(c_message))
+                for ip, msg in c_message.items():
+                    for bip, connection in self.clients.items():
+                        #Check if the ip i want to send message is active
+                        if ip == bip:
+                            rmList.append(ip)
+                            self.clients[bip].transport.write(msg.encode('utf-8'))
+            if rmList:
+                for ip in rmList:
+                    c_message.pop(ip, None)
+        self.looping_call = LoopingCall(broadcast_msg)
+        self.looping_call.start(0.5)
 
     def buildProtocol(self, addr):
-        print(addr)
         return echoClient(self)
 
 class echoMaster(protocol.Protocol):
@@ -72,29 +73,23 @@ class echoMaster(protocol.Protocol):
         send_ip = ":".join(ip_list)
         self.transport.write(send_ip.encode('utf-8'))
 
-    def dataReceived(self, data):
-        self.parseData(data)
-
     def connectionLost(self, reason):
         print('*- Master [%s] disconnected -*' %(self.master_host))
 
-    def parseData(self, data):
-        print(data)
-        global message
+    def dataReceived(self, data):
+        global c_message
         data = data.decode('utf-8')
         p_data = data.split('*')
         peer_ip = p_data[0]
         peer_msg = p_data[1]
-        msg = message[peer_ip] = peer_msg
-
+        c_message[peer_ip] = peer_msg
+        print('[DEBUG] Message for bot [%s]' %c_message)
+ 
 class masterFactory(protocol.Factory):
     def buildProtocol(self, addr):
         return echoMaster()
-
-def main():
+ 
+if __name__ == '__main__': 
     endpoints.serverFromString(reactor, "tcp:8081:interface=127.0.0.1").listen(clientFactory())
     endpoints.serverFromString(reactor, "tcp:8080:interface=127.0.0.1").listen(masterFactory())
     reactor.run()
-
-if __name__ == '__main__':
-    main()

@@ -28,7 +28,7 @@ def login():
 @app.route('/main_activity', methods=['GET','POST'])
 def main_activity():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(("127.0.0.1",8080))
+    sock.connect(("167.99.194.11",8080))
     while True:
         data_b = sock.recv(4096)
         data = data_b.decode('utf-8')
@@ -38,7 +38,6 @@ def main_activity():
             if request.form['submit'] == 'ACCESS':
                 req = request.form.get('access')
                 print(req, file=sys.stdout)
-                #sock.send(req.encode('utf-8'))
                 return redirect(url_for('user_activity', ip = req))
             return render_template('main_activity', data = ip_list)
         if request.method == 'GET':
@@ -54,11 +53,13 @@ def user_activity(ip):
         if request.form['submit'] == 'SEND COMMAND':
             cmd = request.form['text']
             host = request.form.get("host")
-            msg = ":".join(host, 'CMD', cmd)
+            msg = ":".join(['CMD', cmd])
+            srv_msg = "*".join([host, msg])
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect(("167.99.194.11",8080))
-            sock.send(msg.encode('utf-8'))
-            print("[DEBUG] String for the server %s" %(text), file=sys.stdout)
+            sock.send(srv_msg.encode('utf-8'))
+            print("[DEBUG] Message for server %s for host %s" %(msg, host), file=sys.stdout)
+            return redirect(url_for('main_activity'))
             #while True:
             #    resp_b = sock.recv(4096)
             #    resp = resp_b.decode('utf-8')
