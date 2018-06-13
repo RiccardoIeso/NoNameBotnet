@@ -36,9 +36,10 @@ def main_activity():
             return redirect(url_for('home'))
         else: 
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect(("",8080))
+            sock.connect(("167.99.194.11",8080))
             sock.send('null*ip_list:null'.encode('utf-8'))
             data_b = sock.recv(4096)
+            sock.close()
             print(data_b)
             data = data_b.decode('utf-8')
             ip_list = data.split(':')
@@ -51,8 +52,10 @@ def user_activity(ip, cmd_response=None):
     if request.method == 'POST':
         if request.form['submit'] == 'SEND COMMAND':
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect(("", 8080))
+            sock.connect(("167.99.194.11", 8080))
             cmd = request.form['text']
+            if cmd == '':
+                return render_template('user_activity.html', ip = ip)
             host = request.form.get("host")
             msg = ":".join(['CMD', cmd])
             srv_msg = "*".join([host, msg])
@@ -68,7 +71,7 @@ def user_activity(ip, cmd_response=None):
             else:
                 #TODO other action
                 print('WTF', file=sys.stdout)
-        elif request.form['submit'] == 'HOME':
+        elif request.form['submit'] == '<--':
             return redirect(url_for('main_activity'))
 
     elif request.method == 'GET':

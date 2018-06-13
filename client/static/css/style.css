@@ -1,0 +1,50 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #595953;
+}
+
+input[type=text] {
+    background-color: #ffffff;
+    color: white;
+}
+
+input {
+    background-color: white;
+    padding: 6px 16px;
+    cursor: pointer;
+    margin-left: 3%;
+}
+
+div {
+    text-align: justify;
+}
+
+h1 {
+    color: #ffffff;
+    letter-spacing: 3px;
+    margin-left: 2%;
+    font-size: 50px;
+    font-weight: bolder;
+    text-shadow: 2px 2px 3px black;
+}
+
+h2 {
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: bold;
+    margin-left: 3%;
+}
+
+h3 {
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: bold;
+    margin-right: 45%;
+}
+p {
+    color: #2ce008;
+    margin-left: 3%;
+    font-size: 20px;
+    text-shadow: 2px 2px 3px black;
+}

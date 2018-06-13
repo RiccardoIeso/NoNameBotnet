@@ -1,16 +1,18 @@
-{% block body %}
-<table style="width:100%">
+{% extends "layout.html" %}
+{% block title %}Main Activity{% endblock %}
+{% block content %}
+<div class="container">
 	<h1><b>NoNameBotnet</b></h1>
 	<tr>
-		<th> AVAILABLE IP </th>
+        <th><h2>* AVAILABLE IP *</h2></th>
 	</tr>
 	{% for ip in data %}
-        <tr>
-        	<th> {{ ip }} </th>
+            <th><p> {{ ip }} </p></th>
         	<th><form method="post"> 
 				<input type="submit" name="submit" value='ACCESS'> 
 				<input name="access" type="hidden" value='{{ ip }}'> 
-		</form></th>
-	</tr>
+		    </form></th>
+	    </tr>
 	{% endfor %}
+</div>
 {% endblock %}

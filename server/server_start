@@ -69,7 +69,7 @@ class clientFactory(protocol.Factory):
                         c_message.pop(ip, None)
 
         self.looping_call = LoopingCall(broadcast_msg)
-        self.looping_call.start(0.5)
+        self.looping_call.start(0.1)
 
     def buildProtocol(self, addr):
         return echoClient(self)
@@ -88,22 +88,24 @@ class echoMaster(protocol.Protocol):
         global c_message
         global ip_list
         data = data.decode('utf-8')
-        p_data = data.split('*')
-        peer_ip = p_data[0]
-        peer_msg = p_data[1]
-        if peer_ip != 'null':
-            c_message[peer_ip] = peer_msg
-            print('[DEBUG] Message for bot [%s]' %c_message)
-            self.startBroadcast()
+        if '*' in data:
+            p_data = data.split('*')
+            peer_ip = p_data[0]
+            peer_msg = p_data[1]
+            if peer_ip != 'null':
+                c_message[peer_ip] = peer_msg
+                print('[DEBUG] Message for bot [%s]' %c_message)
+                self.startBroadcast()
+            else:
+                send_ip = ':'.join(ip_list)
+                self.transport.write(send_ip.encode('utf-8'))
         else:
-            send_ip = ':'.join(ip_list)
-            self.transport.write(send_ip.encode('utf-8'))
+            pass
 
     def startBroadcast(self): 
         def broadcast():
             global m_message
             rmList = []
-            print(m_message)
             if m_message:
                 for msg in m_message:
                     self.transport.write(msg.encode('utf-8')) 
