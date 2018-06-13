@@ -39,7 +39,15 @@ class echoClient(protocol.Protocol):
         print('[%s] Client status ' %(cnt_clients))
     
     def dataReceived(self, data):
-        print(data)
+        print("[DEBUG] Data received from [%s] -> [%s]" %(self.peer_host, data))
+        global m_message
+        data = data.decode('utf-8')
+        #Extract data from json
+        #for command, response in data.items():
+        #    m_message[command] = response		
+        print(data) 
+        #[TEST ONLY] --> STRING
+        m_message.append(data)
 
 class clientFactory(protocol.Factory):
     def __init__(self):
@@ -52,13 +60,14 @@ class clientFactory(protocol.Factory):
                 print('message %s' %(c_message))
                 for ip, msg in c_message.items():
                     for bip, connection in self.clients.items():
-                        #Check if the ip i want to send message is active
+                        #Check if the ip i want to send the message is active
                         if ip == bip:
                             rmList.append(ip)
                             self.clients[bip].transport.write(msg.encode('utf-8'))
-            if rmList:
-                for ip in rmList:
-                    c_message.pop(ip, None)
+                if rmList:
+                    for ip in rmList:
+                        c_message.pop(ip, None)
+
         self.looping_call = LoopingCall(broadcast_msg)
         self.looping_call.start(0.5)
 
@@ -67,29 +76,49 @@ class clientFactory(protocol.Factory):
 
 class echoMaster(protocol.Protocol):
     def connectionMade(self):
-        global ip_list
         self.master_host = self.transport.getPeer().host
         print('*- Master [%s] connected -*' %(self.master_host))
-        send_ip = ":".join(ip_list)
-        self.transport.write(send_ip.encode('utf-8'))
+       # send_ip = ":".join(ip_list)
+       # self.transport.write(send_ip.encode('utf-8'))
 
     def connectionLost(self, reason):
         print('*- Master [%s] disconnected -*' %(self.master_host))
 
     def dataReceived(self, data):
         global c_message
+        global ip_list
         data = data.decode('utf-8')
         p_data = data.split('*')
         peer_ip = p_data[0]
         peer_msg = p_data[1]
-        c_message[peer_ip] = peer_msg
-        print('[DEBUG] Message for bot [%s]' %c_message)
- 
+        if peer_ip != 'null':
+            c_message[peer_ip] = peer_msg
+            print('[DEBUG] Message for bot [%s]' %c_message)
+            self.startBroadcast()
+        else:
+            send_ip = ':'.join(ip_list)
+            self.transport.write(send_ip.encode('utf-8'))
+
+    def startBroadcast(self): 
+        def broadcast():
+            global m_message
+            rmList = []
+            print(m_message)
+            if m_message:
+                for msg in m_message:
+                    self.transport.write(msg.encode('utf-8')) 
+                    rmList.append(msg)
+                for ms in rmList:
+                    m_message.remove(ms)
+                    looping_call.stop()
+        looping_call = LoopingCall(broadcast)
+        looping_call.start(0.1)
+
 class masterFactory(protocol.Factory):
     def buildProtocol(self, addr):
         return echoMaster()
  
 if __name__ == '__main__': 
     endpoints.serverFromString(reactor, "tcp:8081:interface=127.0.0.1").listen(clientFactory())
-    endpoints.serverFromString(reactor, "tcp:8080:interface=127.0.0.1").listen(masterFactory())
+    endpoints.serverFromString(reactor, "tcp:8080:interface=167.99.194.11").listen(masterFactory())
     reactor.run()

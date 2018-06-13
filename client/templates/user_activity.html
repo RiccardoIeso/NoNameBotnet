@@ -1,10 +1,14 @@
 {% block body %}
-	<h1><b>NoNameBotnet</b></h1>
+<h1><b>NoNameBotnet</b></h1><form method="post">
+	<input type="submit" name="submit" value="HOME" style="float: right; position: absolute; margin-right: 90%;"></form>
 	<h2>USER IP --{{ ip }}--</h2>
 	<form method="post">
 		<input type="submit" name="submit" value="SEND COMMAND">
 		<input name=text>
 		<input name="host" type="hidden" value="{{ ip }}">
+		{% if cmd_response %}
+		<p> {{ cmd_response  }}</p>
+		{% endif %}
 	</form>
 
 {% endblock %}
