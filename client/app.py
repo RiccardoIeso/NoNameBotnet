@@ -64,13 +64,12 @@ def user_activity(ip, cmd_response=None):
             resp = sock.recv(4096)
             sock.close()
             resp = resp.decode('utf-8')
+            resp = resp.replace('\n', '<br>')
             print("[DEBUG] Response from Master Server: %s" %resp)
-            p_resp = resp.split(':')
-            if p_resp[0] == 'CMD':     
-                return render_template('user_activity.html', ip = ip, cmd_response = p_resp[1])
+            if resp:
+                return render_template('user_activity.html', ip = ip, cmd_response = resp)
             else:
-                #TODO other action
-                print('WTF', file=sys.stdout)
+                return render_template('user_activity.html', ip = ip)
         elif request.form['submit'] == '<--':
             return redirect(url_for('main_activity'))
 

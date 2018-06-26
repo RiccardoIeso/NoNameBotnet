@@ -2,7 +2,6 @@
 
 from twisted.internet import protocol, reactor, endpoints
 from twisted.internet.task import LoopingCall
-import socket
 
 #Messages for the clients
 c_message = {} 
@@ -41,7 +40,7 @@ class echoClient(protocol.Protocol):
     def dataReceived(self, data):
         print("[DEBUG] Data received from [%s] -> [%s]" %(self.peer_host, data))
         global m_message
-        data = data.decode('utf-8')
+        data = data.decode('utf-8', 'ignore')
         #Extract data from json
         #for command, response in data.items():
         #    m_message[command] = response		
@@ -121,6 +120,6 @@ class masterFactory(protocol.Factory):
         return echoMaster()
  
 if __name__ == '__main__': 
-    endpoints.serverFromString(reactor, "tcp:8081:interface=127.0.0.1").listen(clientFactory())
+    endpoints.serverFromString(reactor, "tcp:8081:interface=167.99.194.11").listen(clientFactory())
     endpoints.serverFromString(reactor, "tcp:8080:interface=167.99.194.11").listen(masterFactory())
     reactor.run()
