@@ -1,18 +1,26 @@
 {% extends "layout.html" %}
 {% block title %}Main Activity{% endblock %}
 {% block content %}
-<div class="container">
-	<h1><b>NoNameBotnet</b></h1>
-	<tr>
-        <th><h2>* AVAILABLE IP *</h2></th>
-	</tr>
-	{% for ip in data %}
-            <th><p> {{ ip }} </p></th>
-        	<th><form method="post"> 
-				<input type="submit" name="submit" value='ACCESS'> 
-				<input name="access" type="hidden" value='{{ ip }}'> 
-		    </form></th>
-	    </tr>
+<table width="100%">
+    <tr>
+        <td><p class="subtitle">Main activity</p></td>
+        <td><form method="post">
+        <input class="ddos_btn" type="submit" name="submit" value="DDOS">
+        </form></td>
+    </tr>
+    <tr>
+        <td><p class="available">[ AVAILABLE IP ]</p></td>
+    </tr>
+</table>
+<table width="100%">
+	{% for ip in ip_list %}
+    <tr>
+        <td><p class="main_ip"># {{ ip }} \</p></td>
+        <td><form method="post">
+		    <input class="access_btn" type="submit" name="submit" value='ACCESS'> 
+		    <input name="access" type="hidden" value='{{ ip }}'> 
+            </form></td>
+    </tr>
 	{% endfor %}
-</div>
+</table>
 {% endblock %}

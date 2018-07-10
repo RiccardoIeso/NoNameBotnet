@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block title %}Peer Activity{% endblock %}
+{% block content %}
+<table width="100%">
+    <tr>
+        <td><p class="subtitle">Peer Activity</p></td>
+        <td>
+            <form method="post">
+            <input class="back_btn" type="submit" name="submit" value="<==">
+            </form>
+        </td>
+    </tr>
+    <tr>
+        <td><p class="peer_ip"> IP - [{{ ip }}] </p></td>
+    </tr>
+</table>
+<table width="100%">
+    <tr>
+        <form method="post">
+            <td>
+                <input class="cmdsend_btn" type="submit" name="submit" value="SEND COMMAND">
+                <input name="host" type="hidden" value="{{ ip }}">
+            </td>
+            <td><input class="cmd_text" type="text" name="cmd_text" height="48"></td>
+        </form>
+    </tr>
+</table>
+<table width="100%">
+    {% if cmd_response %}
+    <tr>
+        <p class="cmd_response">> {{ cmd_response|safe }} </p>
+    </tr>
+    {% endif %}
+</table>
+{% endblock %}

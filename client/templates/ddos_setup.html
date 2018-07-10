@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}DDOS - settings{% endblock %}
+{% block content %}
+<table width="100%"><tr>
+    <td><p class="subtitle">DDOS - Settings</p></td>
+    <td>
+        <form method="post">
+        <input class="back_btn" type="submit" name="submit" value="<==">
+        </form>
+    </td>
+    </tr>
+</table>
+<table width="100%">
+    <form method="post">
+    <tr>
+        <p class="info"> [NUMBER OF PEERs YOU WANT TO USE] / [{{ n_peers }}] available</p>
+        <input class="ddos_text" type="number" min="1" max="{{ n_peers }}" name="range">
+    </tr>
+    <tr>
+        <p class="info"> [TIME] </p>
+        <input class="ddos_text" type="number" name="time" placeholder="seconds">
+    </tr>
+    <tr>
+        <p class="info"> [HOST/DOMAIN] </p>
+        <input class="ddos_text" type="text" name="domain" placeholder="ie. www.xyz.com">
+    </tr>
+    <tr>
+        <input class="start_btn" type="submit" name="submit" value="START">
+    </tr></table>
+</table>
+{% endblock %}
