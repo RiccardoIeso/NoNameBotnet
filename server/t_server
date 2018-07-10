@@ -42,7 +42,6 @@ class echoPeer(protocol.Protocol):
         print("[DEBUG] Data received from [%s] -> [%s]" %(self.peer_id, data))
         global client_msg
         data = data.decode('utf-8', 'ignore')
-        #TODO Parse data received
         #New message for client
         client_msg.append(data)
 
@@ -62,7 +61,7 @@ class peerFactory(protocol.Factory):
                         pid = msg[1] #Peer ID
                         peer_cmd = msg[2]
                         for peer_id, connection in self.peers.items(): 
-                            #Match peer id of messagge with the id of peers connection
+                            #Match peer id of message with the id of peers connection
                             if pid == peer_id:
                                 print('[DEBUG] Message [%s] to peer %s' %(peer_cmd, pid))
                                 self.peers[peer_id].transport.write(peer_cmd.encode('utf-8'))

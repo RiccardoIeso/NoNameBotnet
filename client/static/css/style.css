@@ -8,22 +8,13 @@ input.cmd_text[type=text] {
     background-color: white;
     color: black;
     float: left;
-    margin-right: 87%;
-    height: 45px;
-    width: 15%;
+    margin-right: 84%;
+    height: 40px;
+    width: 20%;
+    font-size: 20px;
 }
 
 input.ddos_text[type=text] {
-    background-color: white;
-    color: black;
-    width: 20%;
-    height: 5%;
-    margin-left: 5%;
-    margin-right: 1%;
-    font-size: 150%;
-}
-
-input.ddos_text {
     background-color: white;
     color: black;
     width: 20%;
