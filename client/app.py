@@ -2,8 +2,8 @@
 
 from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
 from socket import error
-import os
 import socket
+import os
 import sys
 
 app = Flask(__name__)
