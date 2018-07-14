@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #595953;
+    background-color: black;
 }
 
 input.cmd_text[type=text] {
@@ -152,11 +152,10 @@ p.info {
 }
 
 p.cmd_response {
-    color: #2ce008;
+    color: white;
     margin-left: 2.3%;
     margin-top: 1%;
-    font-size: 1.2vw;
-    text-shadow: 2px 2px 3px black;
+    font-size: 1.1vw;
 }
 
 p.error {
