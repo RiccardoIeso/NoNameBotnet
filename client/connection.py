@@ -17,7 +17,7 @@ def recvTimeout(sock, timeout=2):
                 total_data.append(data)
                 begin = time.time()
             else:
-                time.sleep(0.1)
+                time.sleep(0.3)
         except:
             pass
      

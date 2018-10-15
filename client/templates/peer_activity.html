@@ -1,35 +1,56 @@
 {% extends "layout.html" %}
 {% block title %}Peer Activity{% endblock %}
 {% block content %}
-<table width="100%">
-    <tr>
-        <td><p class="subtitle">Peer Activity</p></td>
-        <td>
+
+<section class="hero">
+    <div class="hero-body">
+        <div class="container has-text-centered is-fluid">
+            <div class="columns">
+                <div class="column is-one-quarter has-text-left">
+                    <p class="title is-1">Peer Activity</p>
+                </div>
+                <div class="column is-one-quarter has-text-right">
+                    <div class="field">
+                        <div class="control">
+                            <form method="post">
+                                <input class="button is-outlined is-info is-large" type="submit" name="submit" value="Back">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="columns">
+                <div class="column has-text-left">
+                    <p class="subtitle is-3"> IP - [{{ ip }}] </p>
+                    <p class="subtitle is-4"> Interact with host </p>
+                </div>
+            </div>
             <form method="post">
-            <input class="back_btn" type="submit" name="submit" value="<==">
+                <div class="columns">
+                    <div class="column is-one-quarter">
+                        <div class="field">
+                            <div class="control">
+                                <input name="host" type="hidden" value="{{ ip }}">
+                                <input class="input is-primary is-large" type="text" name="cmd_text" placeholder="Insert a command">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column is-one-quarter">
+                        <div class="field">
+                            <div class="control">
+                                <input class="button is-success is-outlined is-large" type="submit" name="submit" value="Send">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="columns">
+                    {% if cmd_response %}
+                        <p class="subtitle is-4"> {{ cmd_response|safe }} </p>
+                    {% endif %}
+                </div>
             </form>
-        </td>
-    </tr>
-    <tr>
-        <td><p class="peer_ip"> IP - [{{ ip }}] </p></td>
-    </tr>
-</table>
-<table width="100%">
-    <tr>
-        <form method="post">
-            <td>
-                <input class="cmdsend_btn" type="submit" name="submit" value="SEND COMMAND">
-                <input name="host" type="hidden" value="{{ ip }}">
-            </td>
-            <td><input class="cmd_text" type="text" name="cmd_text" height="48"></td>
-        </form>
-    </tr>
-</table>
-<table width="100%">
-    {% if cmd_response %}
-    <tr>
-        <p class="cmd_response">> {{ cmd_response|safe }} </p>
-    </tr>
-    {% endif %}
-</table>
+        </div>
+    </div>
+</section>
+
 {% endblock %}

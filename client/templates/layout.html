@@ -1,14 +1,16 @@
 <html>
     <head>
         {% block head %}
-            <meta charset='utf-8' />
-            <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+            <!-- development version, includes helpful console warnings -->
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta charset='utf-8'>
+            <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+            <link rel="stylesheet" href="../static/css/bulma.css">
             <title>{% block title %}{% endblock %}</title>
         {% endblock %}
     </head>
     <body>
-        <div id="content">
-                {% block content %}{% endblock %}
-        </div>
+        {% block content %}
+        {% endblock %}
     </body>
 </html>
