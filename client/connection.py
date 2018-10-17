@@ -1,6 +1,6 @@
 import time
 
-def recvTimeout(sock, timeout=2):
+def recvTimeout(sock, timeout=5):
     sock.setblocking(0)
     total_data = [];
     begin = time.time()

@@ -2,15 +2,15 @@
 {% block title %}Main Activity{% endblock %}
 {% block content %}
 
-<section class="hero">
+<section class="hero has-background-black">
     <div class="hero-body">
-        <div class="container has-text-left">
+        <div class="container has-text-left has-background-grey-darker">
             <div class="columns">
-                <div class="column is-four-fifths">
+                <div class="column is-11 has-text-left">
                     <p class="title is-1 has-text-grey">Main activity</p>
                     <p class="subtitle is-4">[ connected host ]</p>
                 </div>
-                <div class="column is-one-quarter">
+                <div class="column is-one-quarter ">
                     <form method="post">
                         <div class="field">
                             <div class="control">
@@ -21,18 +21,14 @@
                 </div>
             </div>
             {% for ip in ip_list %}
-            <div class="columns is-desktop is-hcentered">
-                <div class="column is-one-quarter has-text-left">
-                    <p class="title is-3"> {{ ip }} </p>
-                </div>
-                <div class="column is-one-quarter">
+            <div class="columns">
+                <div class="column has-text-left">
                     <div class="field">
-                        <div class="control">
-                            <form method="post">
-                                <input class="button is-centered is-medium is-success is-outlined" type="submit" name="submit" value='ACCESS'> 
-                                <input name="access" type="hidden" value='{{ ip }}'> 
-                            </form>
-                        </div>
+                        <p class="control">
+                        <form method="post">
+                            <input class="button is-outlined is-medium" type="submit" name="submit" value="{{ ip }}">
+                            <input name="access" type="hidden" value='{{ ip }}'> 
+                        </form>
                     </div>
                 </div>
             </div>

@@ -6,7 +6,7 @@
     <div class="hero-body">
         <div class="container has-text-left is-fluid">
             <div class="columns">
-                <div class="column is-four-fifths has-text-left">
+                <div class="column is-11 has-text-left">
                     <p class="title is-1 has-text-grey">DDOS-Settings</p>
                 </div>
                 <div class="column is-one-quarter">
@@ -25,25 +25,25 @@
                         <div class="box">
                             <div class="field">
                                 <div class="control">
-                                    <p class="subtitle is-4"> Number of Peers: [{{ n_peers }}]</p>
+                                    <label class="subtitle is-5"> Number of Peers: [{{ n_peers }}]</label>
                                     <input class="input is-primary" type="number" min="1" max="{{ n_peers }}" name="range" placeholder="Number of peers to use">
                                 </div>
                             </div>
                             <div class="field">
                                 <div class="control">
-                                    <p class="subtitle is-4"> Time (in seconds) </p>
+                                    <label class="subtitle is-5"> Time (in seconds) </label>
                                     <input class="input is-primary" type="number" min="1" name="time" placeholder="Seconds">
                                 </div>
                             </div>
                             <div class="field">
                                 <div class="control">
-                                    <p class="subtitle is-4"> Domain </p>
+                                    <label class="subtitle is-5"> Domain </label>
                                     <input class="input is-primary" type="text" name="domain" placeholder="ie. www.xyz.com">
                                 </div>
                             </div>
                             <div class="field">
-                                <div class="control">
-                                    <input class="button is-medium is-outlined is-success" type="submit" name="submit" value="Start">
+                                <div class="control has-text-centered">
+                                    <input class="button is-medium is-outlined is-danger" type="submit" name="submit" value="Start">
                                 </div>
                             </div>
                         </div>
