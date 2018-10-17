@@ -46,6 +46,11 @@
                                     <input class="button is-medium is-outlined is-danger" type="submit" name="submit" value="Start">
                                 </div>
                             </div>
+                            {% if response %}
+                            <div class="field has-text-centered">
+                                <p class="title is-5 has-text-success"> {{ response }} </p>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </form>

