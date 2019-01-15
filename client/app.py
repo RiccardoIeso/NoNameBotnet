@@ -7,11 +7,9 @@ import socket
 import os
 import sys
 
-
 app = Flask(__name__)
 app.config['TESTING'] = True
-connection_err = 'Failed to connect to the server'
-insert_err = 'Check if ip and port are correct'
+errors = {'conn_err': 'Failed to connect to the server', 'ins_err': 'Check if ip and port are correct'}
 
 @app.route('/')
 def home():
@@ -26,7 +24,7 @@ def login():
         server_ip = request.form.get('server_ip')
         server_port = request.form.get('server_port')
         if not server_ip or not server_port or int(server_port) not in range(1,65535):
-            return render_template('login.html', error = insert_err)
+            return render_template('login.html', error = errors['ins_err'])
         try:
             sock = connect(server_ip, server_port)
             session['logged_in'] = True
@@ -35,9 +33,9 @@ def login():
             return redirect(url_for('main_activity'))
         except socket.timeout as err:
             print('[DEBUG] Timeout error | reason: %s' %(err))
-            return render_template('login.html', error = connection_err)
+            return render_template('login.html', error = errors['conn_err'])
         except error as serr:
-            return render_template('login.html', error = connection_err)
+            return render_template('login.html', error = errors['conn_err'])
 
     if request.method == 'GET':
         return render_template('login.html')
