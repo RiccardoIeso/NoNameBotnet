@@ -11,7 +11,7 @@ def recvTimeout(sock, timeout=5):
         elif time.time() - begin > timeout*2:
             break
         try:
-            data = sock.recv(8192)
+            data = sock.recv(2048)
             if data:
                 data = data.decode('utf-8')
                 total_data.append(data)
