@@ -1,4 +1,11 @@
 import time
+import socket
+
+def connect(ip, port):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((ip, int(port)))
+    sock.settimeout(None)
+    return sock
 
 def recvTimeout(sock, timeout=5):
     sock.setblocking(0)

