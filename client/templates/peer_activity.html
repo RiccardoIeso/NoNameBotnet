@@ -6,7 +6,7 @@
     <div class="hero-body">
         <div class="container has-text-centered is-fluid">
             <div class="columns">
-                <div class="column is-11 has-text-left">
+                <div class="column is-10 has-text-left">
                     <p class="title is-1">Peer Activity</p>
                 </div>
                 <div class="column is-one-quarter has-text-right">
@@ -20,26 +20,33 @@
                 </div>
             </div>
             <div class="columns">
-                <div class="column has-text-left">
+                <div class="column is-half has-text-left">
                     <p class="subtitle is-3"> IP - [{{ ip }}] </p>
                     <p class="subtitle is-4"> Interact with host </p>
                 </div>
+                <div class="column">
+                    <p class="subtitle is-4"> Upload something </p>
+                    <form method="post">
+                        <input type="file" \>
+                        <input class="button is-success" type="submit" name="submit" value="Upload" \>
+                    </form>
+                </div>
             </div>
-            <form method="post">
-                <div class="columns">
-                    <div class="column">
-                        <div class="field has-addons">
-                            <div class="control">
-                                <input name="host" type="hidden" value="{{ ip }}">
-                                <input class="input is-primary is-medium" type="text" name="cmd_text" placeholder="Insert a command">
-                            </div>
-                            <div class="control">
-                                <input class="button is-success is-medium" type="submit" name="submit" value="Send">
-                            </div>
+            <div class="columns">
+                <form method="post">
+                <div class="column">
+                    <div class="field has-addons">
+                        <div class="control">
+                            <input name="host" type="hidden" value="{{ ip }}">
+                            <input class="input is-primary is-medium" type="text" name="cmd_text" placeholder="Insert a command">
+                        </div>
+                        <div class="control">
+                            <input class="button is-success is-medium" type="submit" name="submit" value="Send">
                         </div>
                     </div>
                 </div>
-            </form>
+                </form>
+            </div>
             {% if cmd_response %}
             <div class="columns is-4">
                 <div class="box has-text-left">

@@ -2,7 +2,7 @@
 
 from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
 from socket import error
-from connection import connect, recvTimeout
+from connection import getSock, recvTimeout
 import socket
 import os
 import sys
@@ -23,13 +23,14 @@ def login():
     if request.method == 'POST':
         server_ip = request.form.get('server_ip')
         server_port = request.form.get('server_port')
-        if not server_ip or not server_port or int(server_port) not in range(1,65535):
+        session['ip'] = server_ip
+        session['port'] = int(server_port)
+        if not server_ip or int(server_port) not in range(1,65535):
             return render_template('login.html', error = errors['ins_err'])
         try:
-            sock = connect(server_ip, server_port)
+            sock = getSock(session)
             session['logged_in'] = True
-            session['ip'] = server_ip
-            session['port'] = int(server_port)
+            sock.close()
             return redirect(url_for('main_activity'))
         except socket.timeout as err:
             print('[DEBUG] Timeout error | reason: %s' %(err))
@@ -56,7 +57,7 @@ def main_activity():
             return redirect(url_for('login'))
         else:
             try:
-                sock = connect(session.get('ip'), session.get('port'))
+                sock = getSock(session) 
                 sock.send("*".encode('utf-8'))
                 ip_data = recvTimeout(sock, 0.5).split('*')
                 session['cnt_peers'] = len(ip_data)
@@ -76,11 +77,11 @@ def peer_activity(ip):
             host = request.form.get("host")
             if cmd == '':
                 return render_template('peer_activity.html', ip = ip)
-            sock = connect(session.get('ip'), session.get('port'))
+            sock = getSock(session)
             srv_msg = "*".join(['CMD', host, cmd])
             sock.send(srv_msg.encode('utf-8'))
             print("[DEBUG] Message to server [%s] | PEER [%s]" %(srv_msg, host))
-            resp = recvTimeout(sock, 0.5)
+            resp = recvTimeout(sock)
             sock.close()
             #TODO Check  resp format
             if resp:

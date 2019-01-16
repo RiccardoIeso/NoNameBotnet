@@ -1,9 +1,9 @@
 import time
 import socket
 
-def connect(ip, port):
+def getSock(session):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((ip, int(port)))
+    sock.connect((session.get('ip'), session.get('port')))
     sock.settimeout(None)
     return sock
 
@@ -29,3 +29,4 @@ def recvTimeout(sock, timeout=5):
             pass
      
     return ''.join(total_data).replace('\n', '</br>')
+
