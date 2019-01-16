@@ -37,7 +37,7 @@
                             </div>
                             <div class="field">
                                 <div class="control">
-                                    <label class="subtitle is-5"> Domain </label>
+                                    <label class="subtitle is-5"> Url </label>
                                     <input class="input is-primary" type="text" name="domain" placeholder="ie. www.xyz.com">
                                 </div>
                             </div>
@@ -46,6 +46,20 @@
                                     <input class="button is-medium is-outlined is-danger" type="submit" name="submit" value="Start">
                                 </div>
                             </div>
+                            {% if error %}
+                            <div class="field">
+                                <div class="control">
+                                    <p class="subtitle is-6 has-text-danger has-text-centered"> {{ error }}! </p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if msg %}
+                            <div class="field">
+                                <div class="control">
+                                    <p class="subtitle is-6 has-text-success has-text-centered"> {{ msg }} </p>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </form>
