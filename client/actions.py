@@ -31,5 +31,3 @@ def sendDdos(session, host, n_peers, time):
     sock.send(msg.encode('utf-8'))
     sock.close
     return True
-
-
